@@ -231,14 +231,19 @@
 
 <script src="https://accounts.google.com/gsi/client" async onload="initAuth()"></script>
 <script>
-const CLIENT_ID  = '770247409341-47d0gssat51h609mgjls5v6hipes72db.apps.googleusercontent.com';
-const SHEET_ID   = '1bVyQkDe1ToIDQFEejECvHTJe26ScV75-6OvHX20z0YM';
-const FOLDER_ID  = '14VEGN_8o8_JO5S6rpyAQnUvC6koHWCo_';
-const HEADER_ROW = 12;
-const IMG_COL_IDX= 12; // Column M = index 12 (0-based)
-const LC_DEFAULT = new Set(['Design','In Production']);
-const LC_COLORS  = {'Design':'on','In Production':'on-blue'};
+const CLIENT_ID   = '770247409341-47d0gssat51h609mgjls5v6hipes72db.apps.googleusercontent.com';
+const SHEET_ID    = '1bVyQkDe1ToIDQFEejECvHTJe26ScV75-6OvHX20z0YM';
+const FOLDER_ID   = '14VEGN_8o8_JO5S6rpyAQnUvC6koHWCo_';
+const HEADER_ROW  = 12;
+const IMG_COL_IDX = 12;
+const LC_DEFAULT  = new Set(['Design','In Production']);
+const LC_COLORS   = {'Design':'on','In Production':'on-blue'};
 const DEFAULT_ADMINS = ['israel.salgado@samara.com'];
+// Google Custom Search — imagen de productos industriales
+const CSE_KEY = 'AIzaSyDKTUO7mwrDl7P3wSDydnU3nGpAhRRKqjw';
+const CSE_CX  = '9160f65825c144d93';
+// Cache de resultados para no repetir llamadas API
+const imgCache = {};
 
 let allRows=[],hdrs=[],token='',userEmail='',timer=null;
 let activeLCs=new Set(LC_DEFAULT),allLCs=[],admins=[...DEFAULT_ADMINS],isAdmin=false;
@@ -480,27 +485,62 @@ function cardHTML(r,i,terms){
 
 // ── IMAGE STATE ──
 function imgSearchTerms(r){
-  const nm=(r[cNAME]||'').replace(/[^\w\s]/g,' ').trim().slice(0,50);
-  const pn=(r[cNUM]||'').replace(/[^\w\s]/g,' ').trim().slice(0,20);
-  return encodeURIComponent(nm||pn);
+  const nm=(r[cNAME]||'').trim().slice(0,60);
+  const pn=(r[cNUM]||'').trim().slice(0,20);
+  // Build a good query: part number + first few words of name
+  const words=nm.split(/\s+/).slice(0,5).join(' ');
+  return pn ? `${pn} ${words}` : words;
+}
+
+async function fetchImagesFromCSE(query){
+  const cacheKey=query.toLowerCase().trim();
+  if(imgCache[cacheKey])return imgCache[cacheKey];
+  try{
+    const q=encodeURIComponent(query+' product');
+    const url=`https://www.googleapis.com/customsearch/v1?key=${CSE_KEY}&cx=${CSE_CX}&q=${q}&searchType=image&num=5&imgSize=medium&safe=active`;
+    const res=await fetch(url);
+    const d=await res.json();
+    if(d.error||!d.items||!d.items.length){ imgCache[cacheKey]=[]; return []; }
+    const urls=d.items.map(it=>it.link).filter(Boolean);
+    imgCache[cacheKey]=urls;
+    return urls;
+  }catch(e){ return []; }
 }
 
 function initImgState(r,i){
   if(imgState[i])return;
   const saved=r[IMG_COL_IDX]||'';
-  const t=imgSearchTerms(r);
-  // Use Wikimedia/Commons for representative product images
-  const nmClean=(r[cNAME]||'').replace(/[^\w\s]/g,' ').trim();
-  const terms2=nmClean.split(/\s+/).slice(0,3).join('+');
-  const urls=[
-    `https://loremflickr.com/140/120/${encodeURIComponent(nmClean.split(' ').slice(0,2).join(','))}?lock=${i}`,
-    `https://loremflickr.com/140/120/${encodeURIComponent(nmClean.split(' ').slice(0,3).join(','))}?lock=${i+100}`,
-    `https://loremflickr.com/140/120/industrial,mechanical?lock=${i+200}`,
-  ];
-  if(saved)urls.unshift(saved);
-  imgState[i]={urls,current:0,rowData:r};
+  imgState[i]={urls:saved?[saved]:[],current:0,rowData:r,loading:!saved};
   const el=document.getElementById('img-'+i);
-  if(el){el.src=urls[0];updateCounter(i);}
+  if(saved){
+    if(el){el.src=saved;updateCounter(i);}
+  } else {
+    // Show loading spinner in image area while fetching
+    const wrap=document.getElementById('imgwrap-'+i);
+    if(wrap&&!wrap.querySelector('.img-loading')){
+      const sp=document.createElement('div');
+      sp.className='img-loading';
+      sp.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center';
+      sp.innerHTML='<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:#1D9E75;border-radius:50%;animation:spin .7s linear infinite"></div>';
+      wrap.appendChild(sp);
+    }
+    const query=imgSearchTerms(r);
+    fetchImagesFromCSE(query).then(urls=>{
+      imgState[i].loading=false;
+      // Remove spinner
+      const wrap2=document.getElementById('imgwrap-'+i);
+      if(wrap2){const sp=wrap2.querySelector('.img-loading');if(sp)sp.remove();}
+      if(urls.length){
+        imgState[i].urls=urls;
+        imgState[i].current=0;
+        const imgEl=document.getElementById('img-'+i);
+        if(imgEl){imgEl.src=urls[0];imgEl.style.display='';updateCounter(i);}
+      } else {
+        imgError(i);
+      }
+    });
+  }
+  updateCounter(i);
 }
 
 function updateCounter(i){
