@@ -508,57 +508,152 @@ function imgSearchTerms(r){
   return pn ? `${pn} ${words}` : words;
 }
 
-function imgSearchQuery(r){
+// Use Claude API to find real product images
+async function fetchProductImages(r){
+  const pn=(r[cNUM]||'').trim();
   const nm=(r[cNAME]||'').trim();
-  const pn=(r[cNUM]||'').trim();
-  // Build focused query: part number + name, targeted at hardware sites
-  const words=nm.split(/\s+/).slice(0,6).join(' ');
-  return pn?`${pn} ${words} -pinterest`:words+' hardware part -pinterest';
-}
-
-// Generate multiple image URLs using different free sources
-function getImgUrls(r,i){
-  const nm=(r[cNAME]||'').replace(/[^\w\s]/g,' ').trim();
-  const pn=(r[cNUM]||'').trim();
-  const q=encodeURIComponent((nm||pn).split(/\s+/).slice(0,4).join(' '));
-  const qFull=encodeURIComponent((pn+' '+nm).trim().slice(0,60));
-  return [
-    // DuckDuckGo image proxy — free, no API needed
-    `https://external-content.duckduckgo.com/iu/?u=${encodeURIComponent('https://www.google.com/search?q='+encodeURIComponent(nm+' '+pn+' product hardware'))}&f=1`,
-    // Wikipedia commons search
-    `https://commons.wikimedia.org/w/index.php?title=Special:Search&search=${q}&ns6=1`,
-    // Open Library covers (works for some industrial items)
-    `https://via.placeholder.com/140x120/1D9E75/ffffff?text=${encodeURIComponent((nm||pn).slice(0,12))}`,
-  ];
+  const desc=(r[cDESC]||'').trim().slice(0,80);
+  const query=`${pn} ${nm}`.trim();
+  try{
+    const resp = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        tools:[{type:'web_search_20250305',name:'web_search'}],
+        system:`You are a product image finder for industrial hardware parts. 
+Given a part number and name, search for product images from sites like grainger.com, zoro.com, mcmaster.com, homedepot.com, supplyhouse.com, or manufacturer sites.
+Return ONLY a JSON array of 3-5 direct image URLs (ending in .jpg, .png, .webp, or .gif) from reputable hardware/industrial suppliers. 
+No pinterest, no etsy, no alibaba. Only real product photos.
+Respond with ONLY the JSON array, no other text. Example: ["https://example.com/img1.jpg","https://example.com/img2.jpg"]`,
+        messages:[{role:'user',content:`Find product images for: Part# ${pn}, Name: ${nm}${desc?' - '+desc:''}`}]
+      })
+    });
+    const data = await resp.json();
+    // Extract text from response
+    const textBlock = data.content?.find(b=>b.type==='text');
+    if(!textBlock) return [];
+    const text = textBlock.text.trim();
+    // Parse JSON array
+    const match = text.match(/\[.*?\]/s);
+    if(!match) return [];
+    const urls = JSON.parse(match[0]);
+    return Array.isArray(urls)?urls.filter(u=>u&&typeof u==='string'&&u.startsWith('http')).slice(0,5):[];
+  }catch(e){
+    console.error('Image fetch error:',e);
+    return [];
+  }
 }
 
 function initImgState(r,i){
   if(imgState[i])return;
   const saved=r[IMG_COL_IDX]||'';
-  imgState[i]={urls:saved?[saved]:[],current:0,rowData:r,fetched:!!saved};
+  imgState[i]={urls:saved?[saved]:[],current:0,rowData:r,loaded:!!saved};
   const el=document.getElementById('img-'+i);
   if(saved){
-    if(el){el.src=saved;el.style.display='';updateCounter(i);}
+    if(el){el.src=saved;el.style.display='block';updateCounter(i);}
   } else {
-    // Show placeholder with item initials while no image assigned
+    // Show spinner while Claude searches for images
+    showImgSpinner(i);
+    // Use IntersectionObserver to only load when visible
     const wrap=document.getElementById('imgwrap-'+i);
-    if(wrap&&el){
-      el.style.display='none';
-      if(!wrap.querySelector('.img-placeholder-text')){
-        const ph=document.createElement('div');
-        ph.className='img-placeholder-text';
-        const initials=(r[cNAME]||r[cNUM]||'?').split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?';
-        const colors=['#1D9E75','#185FA5','#854F0B','#A32D2D','#5F5E5A'];
-        const color=colors[i%colors.length];
-        ph.style.cssText=`position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:${color}18`;
-        ph.innerHTML=`<div style="width:36px;height:36px;border-radius:8px;background:${color};display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;color:#fff">${initials}</div><span style="font-size:9px;color:var(--muted);text-align:center;padding:0 4px;line-height:1.3">${(r[cNUM]||'').slice(0,10)}</span>`;
-        wrap.appendChild(ph);
-      }
+    if(wrap){
+      const obs=new IntersectionObserver((entries,o)=>{
+        if(entries[0].isIntersecting&&!imgState[i].loaded){
+          imgState[i].loaded=true;
+          o.disconnect();
+          fetchProductImages(r).then(urls=>{
+            removeImgSpinner(i);
+            if(urls.length){
+              imgState[i].urls=urls;
+              imgState[i].current=0;
+              const imgEl=document.getElementById('img-'+i);
+              if(imgEl){imgEl.src=urls[0];imgEl.style.display='block';updateCounter(i);}
+              // Show approve button for admins
+              if(isAdmin) showApproveBtn(i);
+            } else {
+              showImgPlaceholder(i,r);
+            }
+          });
+        }
+      },{threshold:0.1});
+      obs.observe(wrap);
     }
-    imgState[i].urls=[];
-    imgState[i].fetched=true;
   }
   updateCounter(i);
+}
+
+function showImgSpinner(i){
+  const wrap=document.getElementById('imgwrap-'+i);
+  if(!wrap||wrap.querySelector('.img-spin'))return;
+  const sp=document.createElement('div');
+  sp.className='img-spin';
+  sp.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:var(--surface)';
+  sp.innerHTML='<div style="width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite"></div>';
+  wrap.appendChild(sp);
+}
+function removeImgSpinner(i){
+  const wrap=document.getElementById('imgwrap-'+i);
+  if(wrap){const sp=wrap.querySelector('.img-spin');if(sp)sp.remove();}
+}
+function showImgPlaceholder(i,r){
+  const el=document.getElementById('img-'+i);
+  if(el)el.style.display='none';
+  const wrap=document.getElementById('imgwrap-'+i);
+  if(!wrap||wrap.querySelector('.no-img-ph'))return;
+  const initials=((r[cNAME]||r[cNUM]||'?').split(/\s+/).slice(0,2).map(w=>w[0]||'').join('')).toUpperCase()||'?';
+  const ph=document.createElement('div');
+  ph.className='no-img-ph';
+  ph.style.cssText='position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:var(--surface)';
+  ph.innerHTML=`<div style="width:36px;height:36px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;font-family:Rajdhani,sans-serif;font-size:14px;font-weight:600;color:#fff">${initials}</div><span style="font-size:9px;color:var(--muted);text-align:center;padding:0 6px">${(r[cNUM]||'').slice(0,12)}</span>`;
+  wrap.appendChild(ph);
+}
+function showApproveBtn(i){
+  const wrap=document.getElementById('imgwrap-'+i);
+  if(!wrap||wrap.querySelector('.quick-approve'))return;
+  const btn=document.createElement('button');
+  btn.className='quick-approve';
+  btn.textContent='✓ Aprobar';
+  btn.style.cssText='position:absolute;bottom:6px;right:6px;background:var(--accent);color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:11px;font-weight:500;cursor:pointer;font-family:DM Sans,sans-serif;z-index:2;opacity:0;transition:opacity .2s';
+  btn.onclick=(e)=>{e.stopPropagation();quickApprove(i);};
+  wrap.appendChild(btn);
+  // Show on hover
+  wrap.addEventListener('mouseenter',()=>btn.style.opacity='1');
+  wrap.addEventListener('mouseleave',()=>btn.style.opacity='0');
+}
+
+async function quickApprove(i){
+  if(!isAdmin){toast('Sin permiso');return;}
+  const st=imgState[i];if(!st||!st.urls.length)return;
+  const imgEl=document.getElementById('img-'+i);
+  const src=imgEl?imgEl.src:'';
+  if(!src)return;
+  toast('Guardando imagen aprobada...');
+  try{
+    // Try to upload to Drive
+    const pn=(allRows[i][cNUM]||'item').replace(/[^\w-]/g,'_');
+    let driveLink=src;
+    try{
+      const blob=await(await fetch(src)).blob();
+      const fname=`${pn}_${Date.now()}.jpg`;
+      const form=new FormData();
+      form.append('metadata',new Blob([JSON.stringify({name:fname,parents:[FOLDER_ID]})],{type:'application/json'}));
+      form.append('file',blob);
+      const up=await(await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
+        method:'POST',headers:{Authorization:'Bearer '+token},body:form
+      })).json();
+      if(!up.error){
+        await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
+          method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+          body:JSON.stringify({role:'reader',type:'anyone'})
+        });
+        driveLink=`https://drive.google.com/uc?id=${up.id}`;
+      }
+    }catch{/* use original src if upload fails */}
+    await writeToSheet(i, driveLink);
+    toast('✓ Imagen aprobada y guardada');
+  }catch(err){toast('Error: '+err.message);}
 }
 
 function updateCounter(i){
@@ -673,6 +768,47 @@ function checkSaveReady(i){
   if(btn)btn.disabled=!ready;
 }
 
+// ── WRITE IMAGE LINK TO SHEET ──
+async function writeToSheet(i, link){
+  const sheetRow=HEADER_ROW+1+i;
+  const range=`M${sheetRow}`;
+  const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?valueInputOption=RAW`,{
+    method:'PUT',
+    headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+    body:JSON.stringify({range,majorDimension:'ROWS',values:[[link]]})
+  });
+  const d=await res.json();
+  if(d.error) throw new Error('Sheet: '+d.error.message);
+  allRows[i][IMG_COL_IDX]=link;
+  const mainImg=document.getElementById('img-'+i);
+  if(mainImg){mainImg.src=link;mainImg.style.display='block';}
+  if(imgState[i]){if(!imgState[i].urls.includes(link))imgState[i].urls.unshift(link);imgState[i].current=0;updateCounter(i);}
+  const wrap=document.getElementById('imgwrap-'+i);
+  if(wrap){const ph=wrap.querySelector('.no-img-ph');if(ph)ph.remove();}
+  const badge=document.getElementById('abadge-'+i);
+  if(badge){badge.textContent='\u2713 Img';badge.classList.add('show');}
+  const slink=document.getElementById('slink-'+i);
+  if(slink){slink.outerHTML=`<a class="saved-link show" href="${link}" target="_blank"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-2 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg> Ver img</a>`;}
+  const addbtn=document.getElementById('addbtn-'+i);
+  if(addbtn)addbtn.innerHTML='Cambiar img';
+}
+
+async function uploadToDrive(fileOrBlob, filename){
+  const form=new FormData();
+  form.append('metadata',new Blob([JSON.stringify({name:filename,parents:[FOLDER_ID]})],{type:'application/json'}));
+  const file=fileOrBlob instanceof File?fileOrBlob:new File([fileOrBlob],filename,{type:fileOrBlob.type||'image/jpeg'});
+  form.append('file',file);
+  const up=await(await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
+    method:'POST',headers:{Authorization:'Bearer '+token},body:form
+  })).json();
+  if(up.error)throw new Error(up.error.message);
+  await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
+    method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+    body:JSON.stringify({role:'reader',type:'anyone'})
+  });
+  return `https://drive.google.com/uc?id=${up.id}`;
+}
+
 async function saveImage(i){
   if(!isAdmin){toast('Sin permiso');return;}
   const st=uploadState[i]||{};
@@ -681,62 +817,30 @@ async function saveImage(i){
   if(savingEl)savingEl.style.display='inline';
   if(saveBtn)saveBtn.disabled=true;
   try{
-    let driveLink='';
     const pn=(allRows[i][cNUM]||'item').replace(/[^\w-]/g,'_');
+    let driveLink='';
     if(st.mode==='upload'&&st.file){
       toast('Subiendo imagen a Drive...');
-      const fname=`${pn}_${Date.now()}.${st.file.name.split('.').pop()||'jpg'}`;
-      const form=new FormData();
-      form.append('metadata',new Blob([JSON.stringify({name:fname,parents:[FOLDER_ID]})],{type:'application/json'}));
-      form.append('file',st.file);
-      const up=await(await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
-        method:'POST',headers:{Authorization:'Bearer '+token},body:form
-      })).json();
-      if(up.error){toast('Error Drive: '+up.error.message);return;}
-      await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
-        method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-        body:JSON.stringify({role:'reader',type:'anyone'})
-      });
-      driveLink=`https://drive.google.com/uc?id=${up.id}`;
+      const ext=st.file.name.split('.').pop()||'jpg';
+      driveLink=await uploadToDrive(st.file,`${pn}_${Date.now()}.${ext}`);
     } else if(st.mode==='link'&&st.linkUrl){
-      toast('Guardando referencia...');
+      toast('Guardando imagen...');
       try{
         const blob=await(await fetch(st.linkUrl)).blob();
-        const fname=`${pn}_${Date.now()}.jpg`;
-        const form=new FormData();
-        form.append('metadata',new Blob([JSON.stringify({name:fname,parents:[FOLDER_ID]})],{type:'application/json'}));
-        form.append('file',blob);
-        const up=await(await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
-          method:'POST',headers:{Authorization:'Bearer '+token},body:form
-        })).json();
-        if(!up.error){
-          await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
-            method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-            body:JSON.stringify({role:'reader',type:'anyone'})
-          });
-          driveLink=`https://drive.google.com/uc?id=${up.id}`;
-        } else driveLink=st.linkUrl;
+        driveLink=await uploadToDrive(blob,`${pn}_${Date.now()}.jpg`);
       }catch{driveLink=st.linkUrl;}
     }
-    const sheetRow=HEADER_ROW+1+i;
-    await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/M${sheetRow}?valueInputOption=RAW`,{
-      method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-      body:JSON.stringify({range:`M${sheetRow}`,majorDimension:'ROWS',values:[[driveLink]]})
-    });
-    allRows[i][IMG_COL_IDX]=driveLink;
-    const mainImg=document.getElementById('img-'+i);
-    if(mainImg){mainImg.src=driveLink;mainImg.style.display='';}
-    if(imgState[i]){imgState[i].urls.unshift(driveLink);imgState[i].current=0;updateCounter(i);}
-    const badge=document.getElementById('abadge-'+i);
-    if(badge){badge.textContent='\u2713 Img';badge.classList.add('show');}
-    const slink=document.getElementById('slink-'+i);
-    if(slink){slink.outerHTML=`<a class="saved-link show" href="${driveLink}" target="_blank"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-2 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg> Ver img</a>`;}
-    const addbtn=document.getElementById('addbtn-'+i);
-    if(addbtn)addbtn.innerHTML='Cambiar img';
+    if(!driveLink){toast('No hay imagen para guardar');return;}
+    await writeToSheet(i,driveLink);
     document.getElementById('uppanel-'+i).classList.remove('open');
     toast('\u2713 Imagen guardada en Drive y Sheet');
-  }catch(err){toast('Error: '+err.message);}
-  finally{if(savingEl)savingEl.style.display='none';}
+  }catch(err){
+    console.error('saveImage:',err);
+    toast('Error: '+err.message);
+  }finally{
+    if(savingEl)savingEl.style.display='none';
+    if(saveBtn)saveBtn.disabled=false;
+  }
 }
 
 // ── ADMIN MANAGEMENT ──
