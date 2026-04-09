@@ -239,10 +239,7 @@ const IMG_COL_IDX = 12;
 const LC_DEFAULT  = new Set(['Design','In Production']);
 const LC_COLORS   = {'Design':'on','In Production':'on-blue'};
 const DEFAULT_ADMINS = ['israel.salgado@samara.com'];
-// Google Custom Search — imagen de productos industriales
-const CSE_KEY = 'AIzaSyDKTUO7mwrDl7P3wSDydnU3nGpAhRRKqjw';
-const CSE_CX  = '57f64e7e1d172431c';
-// Cache de resultados para no repetir llamadas API
+// Image search cache
 const imgCache = {};
 
 let allRows=[],hdrs=[],token='',userEmail='',timer=null;
@@ -454,6 +451,7 @@ function cardHTML(r,i,terms){
       <div class="iup-tabs">
         <button class="iup-tab active" onclick="switchTab(${i},'upload',this)">Subir archivo</button>
         <button class="iup-tab" onclick="switchTab(${i},'link',this)">Pegar link</button>
+        <button class="iup-tab" onclick="switchTab(${i},'google',this)">Buscar en Google</button>
       </div>
       <!-- Upload tab -->
       <div class="iup-body-upload show" id="iup-upload-${i}">
@@ -474,6 +472,24 @@ function cardHTML(r,i,terms){
         </div>
         <img class="iup-link-preview" id="preview-link-${i}" alt="preview"/>
       </div>
+      <!-- Google Images tab -->
+      <div class="iup-body-google" id="iup-google-${i}" style="display:none">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:8px;line-height:1.5">
+          Busca la imagen correcta en Google, haz clic derecho → "Copiar dirección de imagen" y pégala en la pestaña <strong>Pegar link</strong>
+        </div>
+        <a href="https://www.google.com/search?q=${encodeURIComponent((r[cNUM]||'')+' '+(r[cNAME]||'')+' product hardware')}&tbm=isch&tbs=ic:specific,isc:white" 
+           target="_blank" 
+           style="display:inline-flex;align-items:center;gap:6px;padding:8px 14px;background:#185FA5;color:#fff;border-radius:var(--rad-md);font-size:12px;font-weight:500;text-decoration:none">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          Abrir Google Imágenes → ${(r[cNUM]||'')} ${(r[cNAME]||'').slice(0,30)}
+        </a>
+        <div style="font-size:10px;color:var(--muted);margin-top:8px">
+          También puedes buscar en:
+          <a href="https://www.grainger.com/search?searchQuery=${encodeURIComponent(r[cNAME]||r[cNUM]||'')}" target="_blank" style="color:var(--blue);margin:0 4px">Grainger</a>
+          <a href="https://www.zoro.com/search?q=${encodeURIComponent(r[cNAME]||r[cNUM]||'')}" target="_blank" style="color:var(--blue);margin:0 4px">Zoro</a>
+          <a href="https://www.mcmaster.com/#${encodeURIComponent(r[cNAME]||r[cNUM]||'')}" target="_blank" style="color:var(--blue);margin:0 4px">McMaster</a>
+        </div>
+      </div>
       <div class="iup-actions">
         <span id="iup-saving-${i}" style="font-size:11px;color:var(--muted);display:none">Guardando...</span>
         <button class="iup-cancel" onclick="toggleUploadPanel(${i})">Cancelar</button>
@@ -492,72 +508,55 @@ function imgSearchTerms(r){
   return pn ? `${pn} ${words}` : words;
 }
 
-async function fetchImagesFromCSE(query){
-  const cacheKey=query.toLowerCase().trim();
-  if(imgCache[cacheKey])return imgCache[cacheKey];
-  try{
-    const exclude='-site:pinterest.com -site:pinterest.com.mx -site:etsy.com -site:ebay.com -site:alibaba.com -site:aliexpress.com -site:wish.com';
-    const q=encodeURIComponent(query+' industrial hardware product '+exclude);
-    const url=`https://www.googleapis.com/customsearch/v1?key=${CSE_KEY}&cx=${CSE_CX}&q=${q}&searchType=image&num=5&imgSize=medium&imgType=photo&safe=active&gl=us&lr=lang_en`;
-    const res=await fetch(url);
-    const d=await res.json();
-    if(d.error){
-      console.warn('CSE error:',d.error.code, d.error.message);
-      imgCache[cacheKey]=[];
-      return [];
-    }
-    if(!d.items||!d.items.length){
-      // Fallback with simpler query
-      const q2=encodeURIComponent(query+' part '+exclude);
-      const url2=`https://www.googleapis.com/customsearch/v1?key=${CSE_KEY}&cx=${CSE_CX}&q=${q2}&searchType=image&num=5&imgSize=medium&safe=active&gl=us`;
-      const res2=await fetch(url2);
-      const d2=await res2.json();
-      if(!d2.items||!d2.items.length){ imgCache[cacheKey]=[]; return []; }
-      const urls2=d2.items.map(it=>it.link).filter(u=>u&&!u.includes('pinterest')&&!u.includes('etsy')&&!u.includes('aliexpress'));
-      imgCache[cacheKey]=urls2;
-      return urls2;
-    }
-    const urls=d.items.map(it=>it.link).filter(u=>u&&!u.includes('pinterest')&&!u.includes('etsy')&&!u.includes('aliexpress'));
-    imgCache[cacheKey]=urls;
-    return urls;
-  }catch(e){
-    console.error('CSE fetch error:',e);
-    return [];
-  }
+function imgSearchQuery(r){
+  const nm=(r[cNAME]||'').trim();
+  const pn=(r[cNUM]||'').trim();
+  // Build focused query: part number + name, targeted at hardware sites
+  const words=nm.split(/\s+/).slice(0,6).join(' ');
+  return pn?`${pn} ${words} -pinterest`:words+' hardware part -pinterest';
+}
+
+// Generate multiple image URLs using different free sources
+function getImgUrls(r,i){
+  const nm=(r[cNAME]||'').replace(/[^\w\s]/g,' ').trim();
+  const pn=(r[cNUM]||'').trim();
+  const q=encodeURIComponent((nm||pn).split(/\s+/).slice(0,4).join(' '));
+  const qFull=encodeURIComponent((pn+' '+nm).trim().slice(0,60));
+  return [
+    // DuckDuckGo image proxy — free, no API needed
+    `https://external-content.duckduckgo.com/iu/?u=${encodeURIComponent('https://www.google.com/search?q='+encodeURIComponent(nm+' '+pn+' product hardware'))}&f=1`,
+    // Wikipedia commons search
+    `https://commons.wikimedia.org/w/index.php?title=Special:Search&search=${q}&ns6=1`,
+    // Open Library covers (works for some industrial items)
+    `https://via.placeholder.com/140x120/1D9E75/ffffff?text=${encodeURIComponent((nm||pn).slice(0,12))}`,
+  ];
 }
 
 function initImgState(r,i){
   if(imgState[i])return;
   const saved=r[IMG_COL_IDX]||'';
-  imgState[i]={urls:saved?[saved]:[],current:0,rowData:r,loading:!saved};
+  imgState[i]={urls:saved?[saved]:[],current:0,rowData:r,fetched:!!saved};
   const el=document.getElementById('img-'+i);
   if(saved){
-    if(el){el.src=saved;updateCounter(i);}
+    if(el){el.src=saved;el.style.display='';updateCounter(i);}
   } else {
-    // Show loading spinner in image area while fetching
+    // Show placeholder with item initials while no image assigned
     const wrap=document.getElementById('imgwrap-'+i);
-    if(wrap&&!wrap.querySelector('.img-loading')){
-      const sp=document.createElement('div');
-      sp.className='img-loading';
-      sp.style.cssText='position:absolute;inset:0;display:flex;align-items:center;justify-content:center';
-      sp.innerHTML='<div style="width:20px;height:20px;border:2px solid rgba(255,255,255,0.3);border-top-color:#1D9E75;border-radius:50%;animation:spin .7s linear infinite"></div>';
-      wrap.appendChild(sp);
-    }
-    const query=imgSearchTerms(r);
-    fetchImagesFromCSE(query).then(urls=>{
-      imgState[i].loading=false;
-      // Remove spinner
-      const wrap2=document.getElementById('imgwrap-'+i);
-      if(wrap2){const sp=wrap2.querySelector('.img-loading');if(sp)sp.remove();}
-      if(urls.length){
-        imgState[i].urls=urls;
-        imgState[i].current=0;
-        const imgEl=document.getElementById('img-'+i);
-        if(imgEl){imgEl.src=urls[0];imgEl.style.display='';updateCounter(i);}
-      } else {
-        imgError(i);
+    if(wrap&&el){
+      el.style.display='none';
+      if(!wrap.querySelector('.img-placeholder-text')){
+        const ph=document.createElement('div');
+        ph.className='img-placeholder-text';
+        const initials=(r[cNAME]||r[cNUM]||'?').split(/\s+/).slice(0,2).map(w=>w[0]||'').join('').toUpperCase()||'?';
+        const colors=['#1D9E75','#185FA5','#854F0B','#A32D2D','#5F5E5A'];
+        const color=colors[i%colors.length];
+        ph.style.cssText=`position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;background:${color}18`;
+        ph.innerHTML=`<div style="width:36px;height:36px;border-radius:8px;background:${color};display:flex;align-items:center;justify-content:center;font-family:'Rajdhani',sans-serif;font-size:14px;font-weight:600;color:#fff">${initials}</div><span style="font-size:9px;color:var(--muted);text-align:center;padding:0 4px;line-height:1.3">${(r[cNUM]||'').slice(0,10)}</span>`;
+        wrap.appendChild(ph);
       }
-    });
+    }
+    imgState[i].urls=[];
+    imgState[i].fetched=true;
   }
   updateCounter(i);
 }
@@ -625,6 +624,8 @@ function switchTab(i,mode,btn){
   btn.classList.add('active');
   document.getElementById('iup-upload-'+i).className='iup-body-upload'+(mode==='upload'?' show':'');
   document.getElementById('iup-link-'+i).className='iup-body-link'+(mode==='link'?' show':'');
+  const gEl=document.getElementById('iup-google-'+i);
+  if(gEl) gEl.style.display=mode==='google'?'block':'none';
   if(!uploadState[i])uploadState[i]={};
   uploadState[i].mode=mode;
   checkSaveReady(i);
