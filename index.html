@@ -6,28 +6,15 @@
   <title>Samara — Parts Search</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600&family=DM+Sans:wght@400;500&display=swap');
-
     :root {
-      --bg: #ffffff;
-      --surface: #f5f5f3;
-      --border: rgba(0,0,0,0.12);
-      --border2: rgba(0,0,0,0.22);
-      --text: #1a1a1a;
-      --muted: #6b6b68;
-      --accent: #1D9E75;
-      --accent-dk: #0F6E56;
-      --accent-lt: #E1F5EE;
-      --blue-bg: #E6F1FB;
-      --blue: #185FA5;
-      --rad-md: 8px;
-      --rad-lg: 12px;
+      --bg:#ffffff;--surface:#f5f5f3;--border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
+      --text:#1a1a1a;--muted:#6b6b68;--accent:#1D9E75;--accent-dk:#0F6E56;
+      --accent-lt:#E1F5EE;--blue-bg:#E6F1FB;--blue:#185FA5;--rad-md:8px;--rad-lg:12px;
     }
     @media(prefers-color-scheme:dark){
       :root{
-        --bg:#1c1c1a;--surface:#252522;
-        --border:rgba(255,255,255,0.12);--border2:rgba(255,255,255,0.22);
-        --text:#e8e6dc;--muted:#9c9a90;
-        --accent-lt:#04342C;--blue-bg:#042C53;--blue:#85B7EB;
+        --bg:#1c1c1a;--surface:#252522;--border:rgba(255,255,255,0.12);--border2:rgba(255,255,255,0.22);
+        --text:#e8e6dc;--muted:#9c9a90;--accent-lt:#04342C;--blue-bg:#042C53;--blue:#85B7EB;
       }
     }
     *{box-sizing:border-box;margin:0;padding:0}
@@ -35,46 +22,34 @@
     body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);padding:1.25rem 1rem;min-height:100vh}
     #app{max-width:760px;margin:0 auto}
 
-    /* Header */
     .hdr{display:flex;align-items:center;gap:12px;padding-bottom:1.25rem;border-bottom:0.5px solid var(--border);margin-bottom:1.25rem}
     .logo{width:40px;height:40px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
     .logo svg{width:22px;height:22px;fill:#fff}
     .hdr-text h1{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:600;letter-spacing:.5px;color:var(--text)}
     .hdr-text p{font-size:12px;color:var(--muted);margin-top:1px}
 
-    /* Setup card */
-    .card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rad-lg);padding:1.25rem;margin-bottom:1.25rem}
-    .card-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:1rem}
-    .step{display:flex;gap:10px;margin-bottom:1rem}
-    .step:last-child{margin-bottom:0}
-    .snum{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font-size:11px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-    .sbody{}
-    .st{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
-    .sd{font-size:12px;color:var(--muted);line-height:1.6}
-    code{font-size:11px;background:var(--bg);padding:2px 5px;border-radius:4px;font-family:monospace;border:0.5px solid var(--border)}
-
-    /* Field / button */
-    .fl{font-size:12px;color:var(--muted);margin:8px 0 4px}
-    .frow{display:flex;gap:8px}
-    input.fi{flex:1;padding:9px 12px;border-radius:var(--rad-md);border:0.5px solid var(--border2);background:var(--bg);font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif}
-    input.fi:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(29,158,117,.18)}
-    .btn{padding:9px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;white-space:nowrap;transition:background .15s}
-    .btn:hover{background:var(--accent-dk)}
-    .btn:active{transform:scale(.98)}
-    .msg-err{font-size:12px;color:#E24B4A;margin-top:6px}
-    .msg-ok{font-size:12px;color:#1D9E75;margin-top:6px}
-
-    /* Step 3 locked until client ID saved */
-    #step3{opacity:.4;pointer-events:none;transition:opacity .2s}
-
-    /* Google sign-in button */
-    .g-btn{display:flex;align-items:center;gap:10px;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--rad-md);padding:10px 16px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text);max-width:280px;margin-top:.75rem;font-family:'DM Sans',sans-serif;transition:background .15s}
+    /* Login screen */
+    #login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1rem;text-align:center;gap:1.5rem}
+    .login-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rad-lg);padding:2rem;max-width:340px;width:100%}
+    .login-icon{width:56px;height:56px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+    .login-icon svg{width:28px;height:28px;fill:#fff}
+    .login-title{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:600;color:var(--text);margin-bottom:6px}
+    .login-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem;line-height:1.5}
+    .g-btn{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--rad-md);padding:12px 20px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text);width:100%;font-family:'DM Sans',sans-serif;transition:background .15s}
     .g-btn:hover{background:var(--surface)}
+    .login-note{font-size:11px;color:var(--muted);margin-top:12px}
+
+    /* Loading */
+    #loading-screen{display:none;flex-direction:column;align-items:center;justify-content:center;padding:3rem;gap:12px}
+    .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .loading-text{font-size:13px;color:var(--muted)}
 
     /* User bar */
     .ubar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
     .upill{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--surface);border-radius:100px;border:0.5px solid var(--border);font-size:13px;color:var(--muted)}
-    .uavatar{width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff}
+    .uavatar{width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;overflow:hidden;flex-shrink:0}
+    .uavatar img{width:100%;height:100%;object-fit:cover}
     .signout{font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;margin-left:4px;text-decoration:underline}
     .sheet-st{font-size:11px;color:var(--muted)}
 
@@ -86,11 +61,9 @@
     .sbtn:hover{background:var(--accent-dk)}
     .sbtn:active{transform:scale(.98)}
 
-    /* Filters */
     .filters{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:1rem}
     .chip{padding:5px 12px;border-radius:100px;font-size:12px;font-weight:500;border:0.5px solid var(--border);cursor:pointer;color:var(--muted);background:var(--bg);transition:all .12s}
     .chip.on{background:var(--accent-lt);color:#0F6E56;border-color:#9FE1CB}
-
     .sttus{font-size:12px;color:var(--muted);margin-bottom:.75rem;min-height:18px}
 
     /* Results */
@@ -112,6 +85,7 @@
     mark{background:#d4f0e4;border-radius:2px;padding:0 1px}
     .empty{padding:2rem;text-align:center;color:var(--muted);font-size:13px}
     .more{text-align:center;font-size:12px;color:var(--muted);padding:8px 0}
+    .err-msg{font-size:12px;color:#E24B4A;margin-top:8px;text-align:center}
   </style>
 </head>
 <body>
@@ -128,55 +102,44 @@
     </div>
   </div>
 
-  <!-- Setup -->
-  <div id="setup" class="card">
-    <div class="card-title">Configuración inicial</div>
-
-    <div class="step">
-      <div class="snum">1</div>
-      <div class="sbody">
-        <div class="st">OAuth Client ID de Google</div>
-        <div class="sd">Ingresa el Client ID que creaste en Google Console<br>(termina en <code>.apps.googleusercontent.com</code>)</div>
-        <div class="fl">Client ID</div>
-        <div class="frow">
-          <input class="fi" id="cidInput" type="text" placeholder="123456789-abc...apps.googleusercontent.com" />
-          <button class="btn" onclick="saveId()">Guardar</button>
-        </div>
-        <div id="cid-msg"></div>
+  <!-- Login screen -->
+  <div id="login-screen">
+    <div class="login-card">
+      <div class="login-icon">
+        <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 3a1 1 0 110 2 1 1 0 010-2zm-4 11H6v-2h2v2zm4 0h-2v-2h2v2zm0-4H8v-2h4v2zm4 4h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg>
       </div>
-    </div>
-
-    <div class="step" id="step3">
-      <div class="snum">2</div>
-      <div class="sbody">
-        <div class="st">Iniciar sesión con cuenta Samara</div>
-        <div class="sd">Accede con tu cuenta @samara.com para leer el inventario</div>
-        <button class="g-btn" onclick="signIn()">
-          <svg width="18" height="18" viewBox="0 0 24 24">
-            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
-            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-          </svg>
-          Iniciar sesión con Google
-        </button>
-        <div id="login-msg"></div>
-      </div>
+      <div class="login-title">Buscador de Partes</div>
+      <div class="login-sub">Inicia sesión con tu cuenta de Samara para acceder al inventario</div>
+      <button class="g-btn" onclick="signIn()">
+        <svg width="18" height="18" viewBox="0 0 24 24">
+          <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+          <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+          <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/>
+          <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+        </svg>
+        Iniciar sesión con Google
+      </button>
+      <div class="login-note">Solo cuentas @samara.com tienen acceso</div>
+      <div class="err-msg" id="login-err"></div>
     </div>
   </div>
 
-  <!-- User bar -->
-  <div id="ubar" style="display:none" class="ubar">
-    <div class="upill">
-      <div class="uavatar" id="uinitial">?</div>
-      <span id="uname">Usuario</span>
-      <button class="signout" onclick="signOut()">Cerrar sesión</button>
-    </div>
-    <div class="sheet-st" id="sheet-st"></div>
+  <!-- Loading -->
+  <div id="loading-screen">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Verificando sesión...</div>
   </div>
 
-  <!-- Search -->
-  <div id="search" style="display:none">
+  <!-- Main app -->
+  <div id="main-app" style="display:none">
+    <div class="ubar">
+      <div class="upill">
+        <div class="uavatar" id="uavatar">?</div>
+        <span id="uname">Usuario</span>
+        <button class="signout" onclick="signOut()">Cerrar sesión</button>
+      </div>
+      <div class="sheet-st" id="sheet-st"></div>
+    </div>
     <div class="sbar">
       <input class="sinput" id="q" type="text"
         placeholder="Buscar por Part Number, nombre o descripción..."
@@ -195,67 +158,104 @@
 
 </div>
 
-<script src="https://accounts.google.com/gsi/client" async></script>
+<script src="https://accounts.google.com/gsi/client" async onload="initAuth()"></script>
 <script>
-const SHEET_ID = '1bVyQkDe1ToIDQFEejECvHTJe26ScV75-6OvHX20z0YM';
+const CLIENT_ID = '770247409341-47d0gssat51h609mgjls5v6hipes72db.apps.googleusercontent.com';
+const SHEET_ID  = '1bVyQkDe1ToIDQFEejECvHTJe26ScV75-6OvHX20z0YM';
 const HEADER_ROW = 12;
 
-let rows=[], hdrs=[], token='', filter='all', timer=null, cid='';
+let rows=[], hdrs=[], token='', filter='all', timer=null;
 let cPN=-1, cNM=-1, cDS=-1, cCT=-1;
 
-function saveId(){
-  const v=document.getElementById('cidInput').value.trim();
-  if(!v||!v.includes('googleusercontent')){
-    msg('cid-msg','Ingresa un Client ID válido','err'); return;
-  }
-  cid=v;
-  msg('cid-msg','Client ID guardado. Ahora inicia sesión.','ok');
-  document.getElementById('step3').style.cssText='opacity:1;pointer-events:auto';
+function show(id){ ['login-screen','loading-screen','main-app'].forEach(s=>document.getElementById(s).style.display=s===id?(id==='loading-screen'?'flex':id==='login-screen'?'flex':'block'):'none'); }
+
+function setLoading(txt){ show('loading-screen'); document.getElementById('loading-text').textContent=txt||'Cargando...'; }
+
+// Called when GIS library loads — attempt silent sign-in first
+function initAuth(){
+  setLoading('Verificando sesión...');
+  google.accounts.id.initialize({
+    client_id: CLIENT_ID,
+    callback: handleCredential,
+    auto_select: true,
+    cancel_on_tap_outside: false
+  });
+  // Try One Tap / silent auto-select
+  google.accounts.id.prompt(notification => {
+    if(notification.isNotDisplayed() || notification.isSkippedMoment()){
+      // No silent session available — show login screen
+      show('login-screen');
+    }
+  });
 }
 
-function signIn(){
-  if(!cid){alert('Guarda primero el Client ID');return;}
+// Handle credential from One Tap (JWT)
+async function handleCredential(response){
+  setLoading('Autenticando...');
+  // Exchange id_token for access token via token client
+  const payload = parseJwt(response.credential);
+  // Now get an access token for Sheets API
+  requestAccessToken();
+}
+
+function requestAccessToken(){
   google.accounts.oauth2.initTokenClient({
-    client_id:cid,
-    scope:'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
-    callback:async r=>{
-      if(r.error){msg('login-msg','Error: '+r.error,'err');return;}
-      token=r.access_token;
+    client_id: CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+    prompt: '',
+    callback: async r => {
+      if(r.error){ show('login-screen'); document.getElementById('login-err').textContent='Error: '+r.error; return; }
+      token = r.access_token;
       await loadUser();
       await loadSheet();
     }
-  }).requestAccessToken({prompt:'consent'});
+  }).requestAccessToken();
+}
+
+function signIn(){
+  setLoading('Conectando con Google...');
+  google.accounts.oauth2.initTokenClient({
+    client_id: CLIENT_ID,
+    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+    prompt: 'select_account',
+    callback: async r => {
+      if(r.error){ show('login-screen'); document.getElementById('login-err').textContent='Error al iniciar sesión: '+r.error; return; }
+      token = r.access_token;
+      await loadUser();
+      await loadSheet();
+    }
+  }).requestAccessToken();
 }
 
 async function loadUser(){
-  const u=await(await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+token}})).json();
-  document.getElementById('uinitial').textContent=(u.name||'?')[0].toUpperCase();
-  document.getElementById('uname').textContent=u.name||u.email||'Usuario';
-  document.getElementById('ubar').style.display='flex';
+  const u = await (await fetch('https://www.googleapis.com/oauth2/v2/userinfo',{headers:{Authorization:'Bearer '+token}})).json();
+  const av = document.getElementById('uavatar');
+  if(u.picture){ av.innerHTML=`<img src="${u.picture}" alt="${u.name}">`; }
+  else { av.textContent=(u.name||'?')[0].toUpperCase(); }
+  document.getElementById('uname').textContent = u.name||u.email||'Usuario';
 }
 
 async function loadSheet(){
-  document.getElementById('sheet-st').textContent='Cargando inventario...';
-  const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/A${HEADER_ROW}:ZZ3000`,{headers:{Authorization:'Bearer '+token}});
-  const d=await res.json();
-  if(d.error){document.getElementById('sheet-st').textContent='Error: '+d.error.message;return;}
-  const all=d.values||[];
-  if(!all.length){document.getElementById('sheet-st').textContent='Sin datos';return;}
-  hdrs=all[0];
-  rows=all.slice(1).filter(r=>r&&r.some(c=>c));
+  setLoading('Cargando inventario...');
+  const res = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/A${HEADER_ROW}:ZZ3000`,{headers:{Authorization:'Bearer '+token}});
+  const d = await res.json();
+  if(d.error){ show('login-screen'); document.getElementById('login-err').textContent='Error al leer hoja: '+d.error.message; return; }
+  const all = d.values||[];
+  if(!all.length){ document.getElementById('sheet-st').textContent='Sin datos en la hoja'; show('main-app'); return; }
+  hdrs = all[0];
+  rows = all.slice(1).filter(r=>r&&r.some(c=>c));
   detectCols();
   buildFilters();
-  document.getElementById('sheet-st').textContent=rows.length+' ítems cargados';
-  document.getElementById('setup').style.display='none';
-  document.getElementById('search').style.display='block';
-  document.getElementById('sttus').textContent=rows.length+' ítems disponibles';
+  document.getElementById('sheet-st').textContent = rows.length+' ítems cargados';
+  document.getElementById('sttus').textContent = rows.length+' ítems disponibles';
   render(rows,'');
+  show('main-app');
 }
 
 function detectCols(){
   hdrs.forEach((h,i)=>{
     const l=h.toLowerCase();
-    if(l.includes('part')||l.includes('number')||l.includes(' pn')||l==='pn'||l.includes('item')||l.includes('código')||l.includes('codigo')) cPN=i;
+    if(l.includes('part')||l.includes('number')||l==='pn'||l.includes('item')||l.includes('código')||l.includes('codigo')) cPN=i;
     if((l.includes('name')||l.includes('nombre'))&&cNM===-1) cNM=i;
     if(l.includes('desc')&&cDS===-1) cDS=i;
     if(l.includes('categ')||l.includes('tipo')||l.includes('familia')) cCT=i;
@@ -276,14 +276,8 @@ function buildFilters(){
   });
 }
 
-function setFilter(f,el){
-  filter=f;
-  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
-  el.classList.add('on');
-  doSearch();
-}
-
-function onInput(){clearTimeout(timer);timer=setTimeout(doSearch,280);}
+function setFilter(f,el){ filter=f; document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on')); el.classList.add('on'); doSearch(); }
+function onInput(){ clearTimeout(timer); timer=setTimeout(doSearch,280); }
 
 function doSearch(){
   const q=document.getElementById('q').value.trim().toLowerCase();
@@ -291,36 +285,31 @@ function doSearch(){
   if(filter!=='all'&&cCT!==-1) res=res.filter(r=>(r[cCT]||'').toLowerCase()===filter.toLowerCase());
   if(q){
     res=res.filter(r=>{
-      const p=(r[cPN]||'').toLowerCase();
-      const n=(r[cNM]||'').toLowerCase();
+      const p=(r[cPN]||'').toLowerCase(), n=(r[cNM]||'').toLowerCase();
       const d=cDS!==-1?(r[cDS]||'').toLowerCase():'';
       return p.includes(q)||n.includes(q)||d.includes(q);
     });
     res.sort((a,b)=>((a[cPN]||'').toLowerCase().startsWith(q)?0:1)-((b[cPN]||'').toLowerCase().startsWith(q)?0:1));
   }
-  document.getElementById('sttus').textContent=q
+  document.getElementById('sttus').textContent = q
     ?`${res.length} resultado${res.length!==1?'s':''} para "${q}"`
     :`${rows.length} ítems · ${filter!=='all'?'Filtro: '+filter:'Todos'}`;
   render(res,q);
 }
 
-function hl(t,q){
-  if(!q||!t) return t||'';
-  return t.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'),'<mark>$1</mark>');
-}
+function hl(t,q){ if(!q||!t) return t||''; return t.replace(new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi'),'<mark>$1</mark>'); }
 
 function render(res,q){
   const c=document.getElementById('results');
   if(!res.length){c.innerHTML='<div class="empty">No se encontraron resultados</div>';return;}
   const shown=res.slice(0,50);
   c.innerHTML='<div class="grid">'+shown.map(r=>card(r,q)).join('')+'</div>'
-    +(res.length>50?`<div class="more">Mostrando 50 de ${res.length} · Refina la búsqueda para ver más</div>`:'');
+    +(res.length>50?`<div class="more">Mostrando 50 de ${res.length} · Refina la búsqueda</div>`:'');
 }
 
 function card(r,q){
   const pn=r[cPN]||'', nm=r[cNM]||'';
-  const ds=cDS!==-1?(r[cDS]||''):'';
-  const ct=cCT!==-1?(r[cCT]||''):'';
+  const ds=cDS!==-1?(r[cDS]||''):'', ct=cCT!==-1?(r[cCT]||''):'';
   const term=encodeURIComponent((nm||pn).replace(/[^\w\s]/g,'').trim().slice(0,40));
   const gl=`https://www.google.com/search?q=${encodeURIComponent(pn+' '+nm)}`;
   const il=`https://www.google.com/search?q=${encodeURIComponent(pn+' '+nm)}&tbm=isch`;
@@ -338,29 +327,21 @@ function card(r,q){
       ${ds?`<div class="rdesc">${hl(ds.slice(0,130),q)}</div>`:''}
       ${ct||extras?`<div class="rtags">${ct?`<span class="rtag">${ct}</span>`:''} ${extras}</div>`:''}
       <div class="rlinks">
-        <a class="rlink" href="${gl}" target="_blank">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>Google
-        </a>
-        <a class="rlink" href="${il}" target="_blank">
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-2 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>Imágenes
-        </a>
+        <a class="rlink" href="${gl}" target="_blank"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>Google</a>
+        <a class="rlink" href="${il}" target="_blank"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-2 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>Imágenes</a>
       </div>
     </div>
   </div>`;
 }
 
 function signOut(){
-  token='';rows=[];hdrs=[];
-  document.getElementById('ubar').style.display='none';
-  document.getElementById('search').style.display='none';
-  document.getElementById('setup').style.display='block';
+  google.accounts.id.disableAutoSelect();
+  token=''; rows=[]; hdrs=[];
+  document.getElementById('filters').innerHTML='<span class="chip on" onclick="setFilter(\'all\',this)">Todos</span>';
+  show('login-screen');
 }
 
-function msg(id,txt,type){
-  const el=document.getElementById(id);
-  el.className=type==='err'?'msg-err':'msg-ok';
-  el.textContent=txt;
-}
+function parseJwt(t){ try{return JSON.parse(atob(t.split('.')[1]));}catch{return{};} }
 </script>
 </body>
 </html>
