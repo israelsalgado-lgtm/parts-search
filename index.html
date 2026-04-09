@@ -241,7 +241,7 @@ const LC_COLORS   = {'Design':'on','In Production':'on-blue'};
 const DEFAULT_ADMINS = ['israel.salgado@samara.com'];
 // Google Custom Search — imagen de productos industriales
 const CSE_KEY = 'AIzaSyDKTUO7mwrDl7P3wSDydnU3nGpAhRRKqjw';
-const CSE_CX  = '9160f65825c144d93';
+const CSE_CX  = '57f64e7e1d172431c';
 // Cache de resultados para no repetir llamadas API
 const imgCache = {};
 
@@ -496,28 +496,34 @@ async function fetchImagesFromCSE(query){
   const cacheKey=query.toLowerCase().trim();
   if(imgCache[cacheKey])return imgCache[cacheKey];
   try{
-    // Exclude irrelevant sites and focus on industrial/hardware suppliers
-    const exclude='-site:pinterest.com -site:pinterest.com.mx -site:etsy.com -site:ebay.com -site:alibaba.com -site:aliexpress.com';
-    const q=encodeURIComponent(query+' product '+exclude);
-    const url=`https://www.googleapis.com/customsearch/v1?key=${CSE_KEY}&cx=${CSE_CX}&q=${q}&searchType=image&num=5&imgSize=medium&imgType=photo&safe=active&siteSearch=grainger.com|zoro.com|mcmaster.com|homedepot.com|supplyhouse.com|ferguson.com|plumbingsupply.com|amazon.com&siteSearchFilter=i`;
+    const exclude='-site:pinterest.com -site:pinterest.com.mx -site:etsy.com -site:ebay.com -site:alibaba.com -site:aliexpress.com -site:wish.com';
+    const q=encodeURIComponent(query+' industrial hardware product '+exclude);
+    const url=`https://www.googleapis.com/customsearch/v1?key=${CSE_KEY}&cx=${CSE_CX}&q=${q}&searchType=image&num=5&imgSize=medium&imgType=photo&safe=active&gl=us&lr=lang_en`;
     const res=await fetch(url);
     const d=await res.json();
-    if(d.error||!d.items||!d.items.length){
-      // Fallback: broader search without site restriction but still excluding pinterest
-      const q2=encodeURIComponent(query+' industrial part hardware '+exclude);
-      const url2=`https://www.googleapis.com/customsearch/v1?key=${CSE_KEY}&cx=${CSE_CX}&q=${q2}&searchType=image&num=5&imgSize=medium&imgType=photo&safe=active`;
+    if(d.error){
+      console.warn('CSE error:',d.error.code, d.error.message);
+      imgCache[cacheKey]=[];
+      return [];
+    }
+    if(!d.items||!d.items.length){
+      // Fallback with simpler query
+      const q2=encodeURIComponent(query+' part '+exclude);
+      const url2=`https://www.googleapis.com/customsearch/v1?key=${CSE_KEY}&cx=${CSE_CX}&q=${q2}&searchType=image&num=5&imgSize=medium&safe=active&gl=us`;
       const res2=await fetch(url2);
       const d2=await res2.json();
-      if(d2.error||!d2.items||!d2.items.length){ imgCache[cacheKey]=[]; return []; }
-      // Filter out pinterest from results just in case
-      const urls2=d2.items.map(it=>it.link).filter(u=>u&&!u.includes('pinterest')&&!u.includes('etsy'));
+      if(!d2.items||!d2.items.length){ imgCache[cacheKey]=[]; return []; }
+      const urls2=d2.items.map(it=>it.link).filter(u=>u&&!u.includes('pinterest')&&!u.includes('etsy')&&!u.includes('aliexpress'));
       imgCache[cacheKey]=urls2;
       return urls2;
     }
-    const urls=d.items.map(it=>it.link).filter(u=>u&&!u.includes('pinterest')&&!u.includes('etsy'));
+    const urls=d.items.map(it=>it.link).filter(u=>u&&!u.includes('pinterest')&&!u.includes('etsy')&&!u.includes('aliexpress'));
     imgCache[cacheKey]=urls;
     return urls;
-  }catch(e){ return []; }
+  }catch(e){
+    console.error('CSE fetch error:',e);
+    return [];
+  }
 }
 
 function initImgState(r,i){
