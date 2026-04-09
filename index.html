@@ -314,7 +314,16 @@ async function loadSheet(){
   allRows=all.slice(1).filter(r=>r&&r.some(c=>c));
   buildLCFilters();
   document.getElementById('sheet-st').textContent=allRows.length+' ítems cargados';
-  doSearch();
+  // Start with empty state — wait for user to search
+  document.getElementById('sttus').textContent='Escribe algo para buscar en '+allRows.length+' ítems';
+  document.getElementById('results').innerHTML=`
+    <div style="padding:2.5rem 1rem;text-align:center;color:var(--muted)">
+      <div style="width:48px;height:48px;border-radius:12px;background:var(--surface);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      </div>
+      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px">Busca una parte</div>
+      <div style="font-size:12px;line-height:1.6">Escribe un Part Number, nombre o descripción<br>Ej: <span style="color:var(--accent);cursor:pointer" onclick="quickSearch('valve')">valve</span> · <span style="color:var(--accent);cursor:pointer" onclick="quickSearch('pump')">pump</span> · <span style="color:var(--accent);cursor:pointer" onclick="quickSearch('fitting')">fitting</span></div>
+    </div>`;
   show('main-app');
 }
 
@@ -341,6 +350,19 @@ function buildLCFilters(){
 // ── SEARCH ──
 function onInput(){clearTimeout(timer);timer=setTimeout(doSearch,280);}
 
+function quickSearch(term){
+  document.getElementById('q').value=term;
+  doSearch();
+}
+
+// Track recent searches per session
+const recentSearches=[];
+function saveRecentSearch(q){
+  if(!q||recentSearches.includes(q))return;
+  recentSearches.unshift(q);
+  if(recentSearches.length>10)recentSearches.pop();
+}
+
 function smartScore(r,terms){
   const f=[
     (r[cNUM]||'').toLowerCase(),
@@ -362,16 +384,35 @@ function smartScore(r,terms){
 function doSearch(){
   const raw=document.getElementById('q').value.trim().toLowerCase();
   const terms=raw.split(/\s+/).filter(Boolean);
+
+  // Show empty state if no search term
+  if(!terms.length){
+    document.getElementById('sttus').textContent='Escribe algo para buscar en '+allRows.length+' ítems';
+    const recent=recentSearches.slice(0,6);
+    document.getElementById('results').innerHTML=`
+      <div style="padding:2rem 1rem;text-align:center;color:var(--muted)">
+        <div style="width:48px;height:48px;border-radius:12px;background:var(--surface);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+        </div>
+        <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px">Busca una parte</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:${recent.length?'12px':'0'}">Part Number, nombre o descripción</div>
+        ${recent.length?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px">Búsquedas recientes</div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
+          ${recent.map(s=>`<span onclick="quickSearch('${s}')" style="padding:4px 12px;border-radius:100px;background:var(--surface);border:0.5px solid var(--border);font-size:12px;cursor:pointer;color:var(--text)">${s}</span>`).join('')}
+        </div>`:''}
+      </div>`;
+    return;
+  }
+
+  saveRecentSearch(raw);
+
   let res=allRows.map((r,i)=>({r,i}));
   if(activeLCs.size>0) res=res.filter(({r})=>activeLCs.has(r[cLC]||''));
-  if(terms.length){
-    res=res.map(x=>({...x,score:smartScore(x.r,terms)})).filter(x=>x.score>0);
-    res.sort((a,b)=>b.score-a.score);
-  }
+  res=res.map(x=>({...x,score:smartScore(x.r,terms)})).filter(x=>x.score>0);
+  res.sort((a,b)=>b.score-a.score);
+
   const n=res.length;
-  document.getElementById('sttus').textContent=raw
-    ?`${n} resultado${n!==1?'s':''} para "${raw}"`
-    :`${n} ítems · ${activeLCs.size?[...activeLCs].join(', '):'Todos los estados'}`;
+  document.getElementById('sttus').textContent=`${n} resultado${n!==1?'s':''} para "${raw}"`;
   renderResults(res.slice(0,60),terms);
 }
 
