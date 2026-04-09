@@ -114,6 +114,32 @@
     mark{background:#d4f0e4;border-radius:2px;padding:0 1px}
     .empty{padding:2rem;text-align:center;color:var(--muted);font-size:13px}
     .more{text-align:center;font-size:12px;color:var(--muted);padding:8px 0}
+    .img-upload-panel{display:none;border-top:0.5px solid var(--border);padding:10px 13px;background:var(--surface)}
+    .img-upload-panel.open{display:block}
+    .iup-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:8px}
+    .iup-tabs{display:flex;margin-bottom:10px;border:0.5px solid var(--border);border-radius:var(--rad-md);overflow:hidden}
+    .iup-tab{flex:1;padding:6px;font-size:12px;font-weight:500;text-align:center;cursor:pointer;background:var(--bg);color:var(--muted);border:none;font-family:'DM Sans',sans-serif;transition:background .12s}
+    .iup-tab.active{background:var(--accent);color:#fff}
+    .iup-body-upload,.iup-body-link{display:none}
+    .iup-body-upload.show,.iup-body-link.show{display:block}
+    .drop-zone{border:1.5px dashed var(--border2);border-radius:var(--rad-md);padding:16px;text-align:center;cursor:pointer;transition:border-color .15s;position:relative}
+    .drop-zone:hover,.drop-zone.drag{border-color:var(--accent);background:var(--accent-lt)}
+    .drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+    .drop-zone-text{font-size:12px;color:var(--muted);line-height:1.5}
+    .drop-zone-text strong{color:var(--accent)}
+    .img-preview-thumb{width:100%;max-height:100px;object-fit:contain;border-radius:var(--rad-md);margin-top:8px;display:none;border:0.5px solid var(--border)}
+    .iup-link-row{display:flex;gap:8px;align-items:center}
+    .iup-link-input{flex:1;padding:8px 12px;border-radius:var(--rad-md);border:0.5px solid var(--border2);background:var(--bg);font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif}
+    .iup-link-input:focus{outline:none;border-color:var(--accent)}
+    .iup-link-preview{width:100%;max-height:90px;object-fit:contain;border-radius:var(--rad-md);margin-top:8px;display:none;border:0.5px solid var(--border)}
+    .iup-actions{display:flex;gap:8px;margin-top:10px;justify-content:flex-end;align-items:center}
+    .iup-cancel{padding:7px 14px;background:none;border:0.5px solid var(--border2);border-radius:var(--rad-md);cursor:pointer;font-size:12px;color:var(--muted);font-family:'DM Sans',sans-serif}
+    .iup-save{padding:7px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif}
+    .iup-save:hover{background:var(--accent-dk)}
+    .iup-save:disabled{opacity:.5;cursor:not-allowed}
+    .add-img-btn{display:none;align-items:center;gap:5px;padding:3px 9px;border-radius:4px;font-size:11px;font-weight:500;background:var(--surface);color:var(--muted);border:0.5px solid var(--border);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s}
+    .add-img-btn:hover{background:var(--accent-lt);color:#0F6E56;border-color:#9FE1CB}
+    .add-img-btn.admin-visible{display:inline-flex}
     #toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:100px;font-size:13px;font-family:'DM Sans',sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap;max-width:90vw;text-align:center}
     #toast.show{opacity:1}
     #img-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;padding:1rem}
@@ -230,8 +256,18 @@ function setLoading(t){show('loading-screen');document.getElementById('loading-t
 
 function initAuth(){
   setLoading('Verificando sesión...');
-  google.accounts.id.initialize({client_id:CLIENT_ID,callback:()=>requestToken(''),auto_select:true,cancel_on_tap_outside:false});
-  google.accounts.id.prompt(n=>{if(n.isNotDisplayed()||n.isSkippedMoment())show('login-screen');});
+  // Try silent token first — reuses existing Google session without any popup
+  google.accounts.oauth2.initTokenClient({
+    client_id:CLIENT_ID,
+    scope:'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+    prompt:'',
+    callback:async r=>{
+      if(r.error||!r.access_token){ show('login-screen'); return; }
+      token=r.access_token;
+      await loadUser();
+      await loadSheet();
+    }
+  }).requestAccessToken();
 }
 
 function requestToken(prompt){
@@ -366,17 +402,21 @@ function cardHTML(r,i,terms){
   const savedImg=r[IMG_COL_IDX]||'';
   const gl=`https://www.google.com/search?q=${encodeURIComponent(pn+' '+nm+' part')}`;
   const il=`https://www.google.com/search?q=${encodeURIComponent(nm||pn)}&tbm=isch`;
-  const approveBtn=isAdmin?`<button class="approve-btn" onclick="approveImg(event,${i})">✓ Aprobar</button>`:'';
   const approvedBadge=savedImg?`<span class="approved-badge show">✓ Img</span>`:`<span class="approved-badge" id="abadge-${i}"></span>`;
   const savedLinkEl=savedImg
     ?`<a class="saved-link show" href="${savedImg}" target="_blank"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-2 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg> Ver img</a>`
     :`<span id="slink-${i}"></span>`;
+  const addImgBtn=`<button class="add-img-btn ${isAdmin?'admin-visible':''}" onclick="toggleUploadPanel(${i})" id="addbtn-${i}">
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+    ${savedImg?'Cambiar img':'+ Imagen'}
+  </button>`;
+
   return `<div class="rcard" id="card-${i}">
     <div class="rcard-inner">
       <div class="rimg-wrap" id="imgwrap-${i}" onclick="openModal(${i})">
         <img class="main-img" id="img-${i}" src="" alt="${nm}" onerror="imgError(${i})" loading="lazy"/>
         <div class="img-overlay">
-          <div class="img-top">${approvedBadge}${approveBtn}</div>
+          <div class="img-top">${approvedBadge}</div>
           <div class="img-bottom">
             <span class="img-counter" id="ictr-${i}">1/3</span>
             <div class="img-nav">
@@ -399,7 +439,40 @@ function cardHTML(r,i,terms){
           <a class="rlink" href="${gl}" target="_blank"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>Google</a>
           <a class="rlink" href="${il}" target="_blank"><svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-2 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>Imágenes</a>
           ${savedLinkEl}
+          ${addImgBtn}
         </div>
+      </div>
+    </div>
+    <!-- Upload panel (admin only) -->
+    <div class="img-upload-panel" id="uppanel-${i}">
+      <div class="iup-title">Asignar imagen a este ítem</div>
+      <div class="iup-tabs">
+        <button class="iup-tab active" onclick="switchTab(${i},'upload',this)">Subir archivo</button>
+        <button class="iup-tab" onclick="switchTab(${i},'link',this)">Pegar link</button>
+      </div>
+      <!-- Upload tab -->
+      <div class="iup-body-upload show" id="iup-upload-${i}">
+        <div class="drop-zone" id="dropzone-${i}"
+          ondragover="event.preventDefault();this.classList.add('drag')"
+          ondragleave="this.classList.remove('drag')"
+          ondrop="handleDrop(event,${i})">
+          <input type="file" accept="image/*" onchange="handleFileSelect(event,${i})"/>
+          <div class="drop-zone-text"><strong>Haz clic</strong> o arrastra una imagen aquí<br>JPG, PNG, WEBP · Max 10MB</div>
+        </div>
+        <img class="img-preview-thumb" id="preview-upload-${i}" alt="preview"/>
+      </div>
+      <!-- Link tab -->
+      <div class="iup-body-link" id="iup-link-${i}">
+        <div class="iup-link-row">
+          <input class="iup-link-input" id="linkinput-${i}" type="url" placeholder="https://ejemplo.com/imagen.jpg"
+            oninput="previewLink(${i})" onpaste="setTimeout(()=>previewLink(${i}),50)"/>
+        </div>
+        <img class="iup-link-preview" id="preview-link-${i}" alt="preview"/>
+      </div>
+      <div class="iup-actions">
+        <span id="iup-saving-${i}" style="font-size:11px;color:var(--muted);display:none">Guardando...</span>
+        <button class="iup-cancel" onclick="toggleUploadPanel(${i})">Cancelar</button>
+        <button class="iup-save" id="iup-save-${i}" onclick="saveImage(${i})" disabled>Guardar imagen</button>
       </div>
     </div>
   </div>`;
@@ -416,10 +489,13 @@ function initImgState(r,i){
   if(imgState[i])return;
   const saved=r[IMG_COL_IDX]||'';
   const t=imgSearchTerms(r);
+  // Use Wikimedia/Commons for representative product images
+  const nmClean=(r[cNAME]||'').replace(/[^\w\s]/g,' ').trim();
+  const terms2=nmClean.split(/\s+/).slice(0,3).join('+');
   const urls=[
-    `https://source.unsplash.com/140x120/?industrial,${t}`,
-    `https://source.unsplash.com/140x120/?mechanical,${t}`,
-    `https://source.unsplash.com/140x120/?equipment,${t}`,
+    `https://loremflickr.com/140/120/${encodeURIComponent(nmClean.split(' ').slice(0,2).join(','))}?lock=${i}`,
+    `https://loremflickr.com/140/120/${encodeURIComponent(nmClean.split(' ').slice(0,3).join(','))}?lock=${i+100}`,
+    `https://loremflickr.com/140/120/industrial,mechanical?lock=${i+200}`,
   ];
   if(saved)urls.unshift(saved);
   imgState[i]={urls,current:0,rowData:r};
@@ -444,8 +520,19 @@ function cycleImg(i,d){
 function imgError(i){
   const el=document.getElementById('img-'+i);if(!el)return;
   const st=imgState[i];
-  if(st&&st.current<st.urls.length-1){st.current++;el.src=st.urls[st.current];updateCounter(i);}
-  else el.style.display='none';
+  if(st&&st.current<st.urls.length-1){
+    st.current++;el.src=st.urls[st.current];updateCounter(i);
+  } else {
+    el.style.display='none';
+    const wrap=document.getElementById('imgwrap-'+i);
+    if(wrap&&!wrap.querySelector('.no-img-icon')){
+      const ph=document.createElement('div');
+      ph.className='no-img-icon';
+      ph.style.cssText='display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:12px;color:var(--muted);font-size:11px;text-align:center';
+      ph.innerHTML='<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg><span>Sin imagen</span>';
+      wrap.insertBefore(ph,wrap.firstChild);
+    }
+  }
 }
 function openModal(i){
   const el=document.getElementById('img-'+i);
@@ -455,44 +542,141 @@ function openModal(i){
 }
 function closeModal(e){if(e.target===document.getElementById('img-modal'))document.getElementById('img-modal').classList.remove('open');}
 
-// ── APPROVE IMAGE ──
-async function approveImg(e,i){
-  e.stopPropagation();
-  if(!isAdmin){toast('Sin permiso para aprobar imágenes');return;}
-  const st=imgState[i];if(!st)return;
-  const imgEl=document.getElementById('img-'+i);
-  const src=imgEl?imgEl.src:'';
-  if(!src||src===window.location.href){toast('No hay imagen disponible');return;}
-  toast('Guardando imagen en Drive...');
+// ── UPLOAD PANEL ──
+const uploadState={};
+
+function toggleUploadPanel(i){
+  if(!isAdmin){toast('Solo administradores pueden asignar imágenes');return;}
+  const panel=document.getElementById('uppanel-'+i);
+  const isOpen=panel.classList.contains('open');
+  document.querySelectorAll('.img-upload-panel.open').forEach(p=>p.classList.remove('open'));
+  if(!isOpen){panel.classList.add('open');uploadState[i]={mode:'upload',file:null,linkUrl:''};resetUploadPanel(i);}
+}
+
+function resetUploadPanel(i){
+  const btn=document.getElementById('iup-save-'+i);if(btn)btn.disabled=true;
+  const pu=document.getElementById('preview-upload-'+i);if(pu){pu.src='';pu.style.display='none';}
+  const pl=document.getElementById('preview-link-'+i);if(pl){pl.src='';pl.style.display='none';}
+  const li=document.getElementById('linkinput-'+i);if(li)li.value='';
+}
+
+function switchTab(i,mode,btn){
+  const panel=document.getElementById('uppanel-'+i);
+  panel.querySelectorAll('.iup-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('iup-upload-'+i).className='iup-body-upload'+(mode==='upload'?' show':'');
+  document.getElementById('iup-link-'+i).className='iup-body-link'+(mode==='link'?' show':'');
+  if(!uploadState[i])uploadState[i]={};
+  uploadState[i].mode=mode;
+  checkSaveReady(i);
+}
+
+function handleFileSelect(e,i){
+  const file=e.target.files[0];if(!file)return;
+  if(file.size>10*1024*1024){toast('Archivo muy grande, máximo 10MB');return;}
+  if(!uploadState[i])uploadState[i]={};
+  uploadState[i].file=file;
+  const reader=new FileReader();
+  reader.onload=ev=>{const p=document.getElementById('preview-upload-'+i);if(p){p.src=ev.target.result;p.style.display='block';}};
+  reader.readAsDataURL(file);
+  checkSaveReady(i);
+}
+
+function handleDrop(e,i){
+  e.preventDefault();
+  document.getElementById('dropzone-'+i).classList.remove('drag');
+  const file=e.dataTransfer.files[0];
+  if(!file||!file.type.startsWith('image/')){toast('Solo se aceptan imágenes');return;}
+  if(!uploadState[i])uploadState[i]={};
+  uploadState[i].file=file;
+  const reader=new FileReader();
+  reader.onload=ev=>{const p=document.getElementById('preview-upload-'+i);if(p){p.src=ev.target.result;p.style.display='block';}};
+  reader.readAsDataURL(file);
+  checkSaveReady(i);
+}
+
+function previewLink(i){
+  const input=document.getElementById('linkinput-'+i);
+  const url=input?input.value.trim():'';
+  if(!uploadState[i])uploadState[i]={};
+  uploadState[i].linkUrl=url;
+  const prev=document.getElementById('preview-link-'+i);
+  if(prev&&url){prev.src=url;prev.style.display='block';prev.onerror=()=>prev.style.display='none';}
+  else if(prev)prev.style.display='none';
+  checkSaveReady(i);
+}
+
+function checkSaveReady(i){
+  const st=uploadState[i]||{};
+  const ready=(st.mode==='upload'&&st.file)||(st.mode==='link'&&st.linkUrl&&st.linkUrl.startsWith('http'));
+  const btn=document.getElementById('iup-save-'+i);
+  if(btn)btn.disabled=!ready;
+}
+
+async function saveImage(i){
+  if(!isAdmin){toast('Sin permiso');return;}
+  const st=uploadState[i]||{};
+  const savingEl=document.getElementById('iup-saving-'+i);
+  const saveBtn=document.getElementById('iup-save-'+i);
+  if(savingEl)savingEl.style.display='inline';
+  if(saveBtn)saveBtn.disabled=true;
   try{
-    const blob=await(await fetch(src)).blob();
-    const pn=(st.rowData[cNUM]||'item').replace(/[^\w-]/g,'_');
-    const fname=`${pn}_${Date.now()}.jpg`;
-    const form=new FormData();
-    form.append('metadata',new Blob([JSON.stringify({name:fname,parents:[FOLDER_ID]})],{type:'application/json'}));
-    form.append('file',blob);
-    const up=await(await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
-      method:'POST',headers:{Authorization:'Bearer '+token},body:form
-    })).json();
-    if(up.error){toast('Error Drive: '+up.error.message);return;}
-    await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
-      method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-      body:JSON.stringify({role:'reader',type:'anyone'})
-    });
-    const link=`https://drive.google.com/file/d/${up.id}/view`;
-    // Write to Sheet column M
+    let driveLink='';
+    const pn=(allRows[i][cNUM]||'item').replace(/[^\w-]/g,'_');
+    if(st.mode==='upload'&&st.file){
+      toast('Subiendo imagen a Drive...');
+      const fname=`${pn}_${Date.now()}.${st.file.name.split('.').pop()||'jpg'}`;
+      const form=new FormData();
+      form.append('metadata',new Blob([JSON.stringify({name:fname,parents:[FOLDER_ID]})],{type:'application/json'}));
+      form.append('file',st.file);
+      const up=await(await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
+        method:'POST',headers:{Authorization:'Bearer '+token},body:form
+      })).json();
+      if(up.error){toast('Error Drive: '+up.error.message);return;}
+      await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
+        method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+        body:JSON.stringify({role:'reader',type:'anyone'})
+      });
+      driveLink=`https://drive.google.com/uc?id=${up.id}`;
+    } else if(st.mode==='link'&&st.linkUrl){
+      toast('Guardando referencia...');
+      try{
+        const blob=await(await fetch(st.linkUrl)).blob();
+        const fname=`${pn}_${Date.now()}.jpg`;
+        const form=new FormData();
+        form.append('metadata',new Blob([JSON.stringify({name:fname,parents:[FOLDER_ID]})],{type:'application/json'}));
+        form.append('file',blob);
+        const up=await(await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
+          method:'POST',headers:{Authorization:'Bearer '+token},body:form
+        })).json();
+        if(!up.error){
+          await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
+            method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+            body:JSON.stringify({role:'reader',type:'anyone'})
+          });
+          driveLink=`https://drive.google.com/uc?id=${up.id}`;
+        } else driveLink=st.linkUrl;
+      }catch{driveLink=st.linkUrl;}
+    }
     const sheetRow=HEADER_ROW+1+i;
     await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/M${sheetRow}?valueInputOption=RAW`,{
       method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-      body:JSON.stringify({range:`M${sheetRow}`,majorDimension:'ROWS',values:[[link]]})
+      body:JSON.stringify({range:`M${sheetRow}`,majorDimension:'ROWS',values:[[driveLink]]})
     });
-    allRows[i][IMG_COL_IDX]=link;
+    allRows[i][IMG_COL_IDX]=driveLink;
+    const mainImg=document.getElementById('img-'+i);
+    if(mainImg){mainImg.src=driveLink;mainImg.style.display='';}
+    if(imgState[i]){imgState[i].urls.unshift(driveLink);imgState[i].current=0;updateCounter(i);}
     const badge=document.getElementById('abadge-'+i);
-    if(badge){badge.textContent='✓ Img';badge.classList.add('show');}
+    if(badge){badge.textContent='\u2713 Img';badge.classList.add('show');}
     const slink=document.getElementById('slink-'+i);
-    if(slink){slink.outerHTML=`<a class="saved-link show" href="${link}" target="_blank"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-2 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg> Ver img</a>`;}
-    toast('✓ Imagen aprobada y guardada en Drive y Sheet');
+    if(slink){slink.outerHTML=`<a class="saved-link show" href="${driveLink}" target="_blank"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-2 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg> Ver img</a>`;}
+    const addbtn=document.getElementById('addbtn-'+i);
+    if(addbtn)addbtn.innerHTML='Cambiar img';
+    document.getElementById('uppanel-'+i).classList.remove('open');
+    toast('\u2713 Imagen guardada en Drive y Sheet');
   }catch(err){toast('Error: '+err.message);}
+  finally{if(savingEl)savingEl.style.display='none';}
 }
 
 // ── ADMIN MANAGEMENT ──
