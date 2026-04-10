@@ -19,17 +19,12 @@
     }
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{width:100%;overflow-x:hidden}
-    body{
-      font-family:'DM Sans',sans-serif;
-      background:var(--bg);color:var(--text);
-      min-height:100vh;
-      padding:1rem 1rem 2rem;
-    }
-    @media(max-width:600px){body{padding:.6rem .6rem 2rem;}}
-    #app{width:100%;max-width:100%;margin:0;}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);padding:1rem 1rem 2rem;min-height:100vh}
+    @media(max-width:600px){body{padding:.6rem .6rem 2rem}}
+    #app{width:100%;max-width:100%;margin:0}
 
     /* Header */
-    .hdr{display:flex;align-items:center;gap:12px;padding-bottom:1rem;border-bottom:0.5px solid var(--border);margin-bottom:1rem;width:100%;}
+    .hdr{display:flex;align-items:center;gap:12px;padding-bottom:1rem;border-bottom:0.5px solid var(--border);margin-bottom:1rem;width:100%}
     .logo{width:40px;height:40px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
     .logo svg{width:22px;height:22px;fill:#fff}
     .hdr-text h1{font-family:'Rajdhani',sans-serif;font-size:clamp(16px,4vw,22px);font-weight:600;letter-spacing:.5px;color:var(--text)}
@@ -81,7 +76,27 @@
     .btn-sm{padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif}
     .btn-sm:hover{background:var(--accent-dk)}
 
+    /* Sticky search bar */
+    .search-sticky{position:sticky;top:0;z-index:200;background:var(--bg);margin-left:-1rem;margin-right:-1rem;padding:10px 1rem 8px;border-bottom:0.5px solid var(--border);margin-bottom:10px}
+    @media(max-width:600px){.search-sticky{margin-left:-.6rem;margin-right:-.6rem;padding:8px .6rem 6px}}
+    .search-sticky::after{content:'';display:block;height:6px;background:linear-gradient(to bottom,rgba(0,0,0,.06),transparent);pointer-events:none;margin-top:6px}
+
+    /* Search bar — full width responsive */
+    .sbar{display:flex;gap:6px;margin-bottom:.4rem;width:100%}
+    .sinput{flex:1;min-width:0;width:100%;padding:12px 14px;border-radius:var(--rad-md);border:0.5px solid var(--border2);background:var(--bg);font-size:15px;color:var(--text);font-family:'DM Sans',sans-serif}
+    @media(max-width:400px){.sinput{font-size:14px;padding:11px 10px}}
+    .sinput:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(29,158,117,.18)}
+    .sbtn{padding:12px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:6px;transition:background .15s;white-space:nowrap;flex-shrink:0}
+    @media(min-width:600px){.sbtn{padding:12px 22px}}
+    @media(max-width:420px){.sbtn .sbtn-label{display:none}.sbtn{padding:12px 14px}}
+    .sbtn:hover{background:var(--accent-dk)}
+    .sbtn:active{transform:scale(.98)}
     .search-hint{font-size:11px;color:var(--muted);margin-bottom:.75rem;padding-left:2px}
+
+    /* Image status badges (FIX 4) */
+    .img-status-badge{font-size:9px;font-weight:600;border-radius:3px;padding:2px 6px;pointer-events:none}
+    .img-status-badge.approved{background:var(--accent);color:#fff}
+    .img-status-badge.reference{background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775}
 
     /* Lifecycle filters */
     .filter-section{margin-bottom:.75rem}
@@ -93,15 +108,14 @@
     .chip.on-amber{background:var(--amber-bg);color:var(--amber);border-color:#FAC775}
     .sttus{font-size:12px;color:var(--muted);margin-bottom:.75rem;min-height:18px}
 
-    /* Result cards — fluid width */
-    .grid{display:grid;gap:10px;width:100%;}
-    .rcard{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad-lg);overflow:hidden;transition:border-color .15s;width:100%;}
+    /* Result cards — fluid */
+    .grid{display:grid;gap:10px;width:100%}
+    .rcard{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad-lg);overflow:hidden;transition:border-color .15s;width:100%}
     .rcard:hover{border-color:var(--accent)}
-    /* image col adapts: 130px phone → 150px tablet → 170px desktop */
-    .rcard-inner{display:grid;grid-template-columns:130px 1fr;}
-    @media(max-width:400px){.rcard-inner{grid-template-columns:85px 1fr;}}
-    @media(min-width:700px){.rcard-inner{grid-template-columns:160px 1fr;}}
-    @media(min-width:1024px){.rcard-inner{grid-template-columns:180px 1fr;}}
+    .rcard-inner{display:grid;grid-template-columns:130px 1fr}
+    @media(max-width:400px){.rcard-inner{grid-template-columns:85px 1fr}}
+    @media(min-width:700px){.rcard-inner{grid-template-columns:160px 1fr}}
+    @media(min-width:1024px){.rcard-inner{grid-template-columns:180px 1fr}}
 
     /* Image panel */
     .rimg-wrap{position:relative;background:var(--surface);overflow:hidden;min-height:130px;display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -168,72 +182,6 @@
     .iup-save{padding:7px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif}
     .iup-save:hover{background:var(--accent-dk)}
     .iup-save:disabled{opacity:.5;cursor:not-allowed}
-
-    /* ── FIX 5 + RESPONSIVE: Sticky search bar full-width ── */
-    .search-sticky{
-      position:sticky;top:0;z-index:200;
-      background:var(--bg);
-      /* bleed to full viewport width regardless of body padding */
-      margin-left:-1rem;
-      margin-right:-1rem;
-      padding:10px 1rem 8px;
-      border-bottom:0.5px solid var(--border);
-      margin-bottom:10px;
-    }
-    @media(max-width:600px){
-      .search-sticky{margin-left:-.6rem;margin-right:-.6rem;padding:8px .6rem 6px;}
-    }
-    .search-sticky::after{
-      content:'';display:block;height:6px;
-      background:linear-gradient(to bottom,rgba(0,0,0,.06),transparent);
-      pointer-events:none;margin-top:6px;
-    }
-
-    /* Search bar: full width, responsive font + padding */
-    .sbar{display:flex;gap:6px;margin-bottom:.4rem;width:100%;}
-    .sinput{
-      flex:1;min-width:0;
-      padding:12px 14px;
-      border-radius:var(--rad-md);
-      border:0.5px solid var(--border2);
-      background:var(--bg);
-      font-size:15px;color:var(--text);
-      font-family:'DM Sans',sans-serif;
-      width:100%;
-      /* prevent iOS zoom on focus (needs >=16px or this meta trick) */
-      -webkit-text-size-adjust:100%;
-    }
-    .sinput:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(29,158,117,.18)}
-    /* on very small screens shrink input font slightly */
-    @media(max-width:400px){.sinput{font-size:14px;padding:11px 10px;}}
-
-    .sbtn{
-      padding:12px 16px;
-      background:var(--accent);color:#fff;border:none;
-      border-radius:var(--rad-md);cursor:pointer;
-      font-size:14px;font-weight:500;
-      font-family:'DM Sans',sans-serif;
-      display:flex;align-items:center;gap:5px;
-      transition:background .15s;white-space:nowrap;flex-shrink:0;
-    }
-    /* tablet: bigger tap target */
-    @media(min-width:600px){.sbtn{padding:12px 22px;}}
-    /* phone: hide button text, show only icon */
-    @media(max-width:420px){.sbtn .sbtn-label{display:none;}.sbtn{padding:12px 14px;}}
-    .sbtn:hover{background:var(--accent-dk)}
-    .sbtn:active{transform:scale(.98)}
-
-    /* ── FIX 4: Image status badges ── */
-    .img-status-badge{
-      font-size:9px;font-weight:600;border-radius:3px;
-      padding:2px 6px;pointer-events:none;
-    }
-    .img-status-badge.approved{
-      background:var(--accent);color:#fff;
-    }
-    .img-status-badge.reference{
-      background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775;
-    }
 
     mark{background:#d4f0e4;border-radius:2px;padding:0 1px}
     .empty{padding:2rem;text-align:center;color:var(--muted);font-size:13px}
@@ -341,11 +289,11 @@
       </div>
     </div>
 
-    <!-- FIX 5: sticky wrapper -->
+    <!-- sticky search wrapper -->
     <div class="search-sticky">
       <div class="sbar">
         <input class="sinput" id="q" type="text"
-          placeholder="Search by Part Number, name or description — e.g. valve 1/2, gate valve stainless..."
+          placeholder="Search by Part Number, name or description..."
           oninput="onInputClear()" onkeydown="if(event.key==='Enter')doSearch()"/>
         <button class="sbtn" onclick="doSearch()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
@@ -358,8 +306,7 @@
         <div class="filters" id="lc-filters"></div>
       </div>
     </div>
-
-    <div class="sttus" id="sttus" style="margin-top:.6rem"></div>
+    <div class="sttus" id="sttus" style="margin-top:.5rem"></div>
     <div id="results"></div>
   </div>
 </div>
@@ -437,7 +384,6 @@ async function loadUser(){
   if(u.picture)av.innerHTML=`<img src="${u.picture}" alt="">`;
   else av.textContent=(u.name||'?')[0].toUpperCase();
   document.getElementById('uname').textContent=u.name||u.email||'User';
-  // FIX 2: load admin list from Sheet so it's cross-device
   await loadAdminsFromSheet();
   isAdmin=admins.map(a=>a.toLowerCase()).includes(userEmail);
   if(isAdmin){
@@ -500,14 +446,10 @@ function buildLCFilters(){
 }
 
 // ── SEARCH ──
-// ── SEARCH INPUT ──
-// Only trigger search on Enter or button click — NEVER while typing.
-// This prevents images from disappearing mid-keystroke.
+// FIX BUG: no auto-search while typing — only on Enter or button
 function onInputClear(){
-  // If the user clears the box entirely, go back to the empty/welcome state
   if(!document.getElementById('q').value.trim()) showEmptyState();
 }
-// timer kept on line above in global vars — no re-declaration needed
 function quickSearch(term){document.getElementById('q').value=term;doSearch();}
 function saveRecentSearch(q){
   if(!q||recentSearches.includes(q))return;
@@ -591,34 +533,23 @@ function renderResults(res,terms){
   c.innerHTML='<div class="grid">'+res.map(({r,i})=>cardHTML(r,i,terms)).join('')+'</div>'
     +(res.length>=60?'<div class="more">Showing top 60 results · Refine your search to see more</div>':'');
 
-  // After DOM is rebuilt, restore already-loaded images and init new ones
+  // FIX BUG: after DOM rebuild, restore previously loaded images from imgState
   res.forEach(({r,i})=>{
-    const existing=imgState[i];
-    if(existing && existing.urls.length){
-      // ── Restore previously loaded / approved image ──
+    const st=imgState[i];
+    if(st&&st.urls.length){
+      // Already loaded before — restore image directly, skip re-init
       const el=document.getElementById('img-'+i);
-      if(el){
-        el.src=existing.urls[existing.current];
-        el.style.display='block';
-        // Remove placeholder if present
-        const wrap=document.getElementById('imgwrap-'+i);
-        if(wrap){const ph=wrap.querySelector('.img-ph');if(ph)ph.remove();}
-        updateCounter(i);
-      }
-      // Restore badge state: if saved image exists, mark as Approved
-      const savedImg=allRows[i]?allRows[i][IMG_COL_IDX]||''  :'';
+      if(el){el.src=st.urls[st.current];el.style.display='block';}
+      const wrap=document.getElementById('imgwrap-'+i);
+      if(wrap){const ph=wrap.querySelector('.img-ph');if(ph)ph.remove();}
+      updateCounter(i);
+      // Restore badge if approved
+      const saved=allRows[i]?allRows[i][IMG_COL_IDX]||''  :'';
       const badge=document.getElementById('abadge-'+i);
-      if(badge && savedImg){
-        badge.textContent='✓ Aprobada';
-        badge.className='img-status-badge approved';
-      }
-      // Hide quick-approve button if image already saved
-      if(savedImg){
-        const qb=document.getElementById('qabtn-'+i);
-        if(qb)qb.style.display='none';
-      }
+      if(badge&&saved){badge.textContent='✓ Aprobada';badge.className='img-status-badge approved';}
+      const qb=document.getElementById('qabtn-'+i);
+      if(qb&&saved)qb.style.display='none';
     } else {
-      // First time seeing this card — initialise normally
       initImgState(r,i);
     }
   });
@@ -634,13 +565,12 @@ function cardHTML(r,i,terms){
   const rev=r[cREV]||'',cat=r[cCAT]||'',uom=r[cUOM]||'';
   const eff=r[cEFF]||'',proc=r[cPROC]||'',nsa=r[cNSA]||'',nsp=r[cNSP]||'';
   const savedImg=r[IMG_COL_IDX]||'';
-
-  // FIX 1: build Google query from Name + key Description words only (no PN)
+  // FIX 1: query uses Name + Description only — no PN
   const descWords=(ds||'').trim().split(/\s+/).filter(w=>w.length>2).slice(0,5).join(' ');
   const googleBase=nm.trim()+(descWords?' '+descWords:'');
   const gl=`https://www.google.com/search?q=${encodeURIComponent(googleBase+' hardware part')}`;
   const il=`https://www.google.com/search?q=${encodeURIComponent(googleBase+' -site:pinterest.com')}&tbm=isch`;
-  // FIX 4: always-visible status badge — green if approved, amber if reference only
+  // FIX 4: always-visible badge — green approved / amber reference
   const approvedBadge=savedImg
     ?`<span class="img-status-badge approved">✓ Aprobada</span>`
     :`<span class="img-status-badge reference" id="abadge-${i}">⚠ Referencia</span>`;
@@ -721,7 +651,7 @@ function cardHTML(r,i,terms){
           Open Google Images, find the correct image, right-click → "Copy image address", then paste it in the <strong>Paste link</strong> tab.
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px">
-          <a href="https://www.google.com/search?q=${encodeURIComponent((nm||pn)+' -site:pinterest.com -site:etsy.com')}&tbm=isch&tbs=isz:m,ic:specific,isc:white" target="_blank"
+          <a href="https://www.google.com/search?q=${encodeURIComponent(pn+' '+nm+' -site:pinterest.com -site:etsy.com')}&tbm=isch&tbs=isz:m,ic:specific,isc:white" target="_blank"
              style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#185FA5;color:#fff;border-radius:var(--rad-md);font-size:12px;font-weight:500;text-decoration:none">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             Google Images
@@ -749,7 +679,7 @@ function buildImgQuery(r){
 }
 
 function buildSearchQuery(r){
-  // FIX 1: use Item Name + key Description words — NOT the part number
+  // FIX 1: Name + Description keywords only — no part number
   const nm=(r[cNAME]||'').trim();
   const ds=(r[cDESC]||'').trim().split(/\s+/).filter(w=>w.length>2).slice(0,4).join(' ');
   const cleanName=nm.replace(/[-_,]\s*[A-Z0-9]{4,}$/,'').trim();
@@ -943,29 +873,23 @@ function checkSaveReady(i){
 }
 
 // ── DRIVE & SHEET ──
-// FIX 3: reliable multipart upload — bypasses FormData issues
+// FIX 3: manual multipart upload — more reliable than FormData across browsers
 async function uploadToDrive(fileOrBlob, filename){
   const safeName=(filename||'image_'+Date.now()+'.jpg').replace(/[\/\\:*?"<>|]/g,'_').slice(0,100);
   let mimeType='image/jpeg';
-  if(fileOrBlob&&fileOrBlob.type&&fileOrBlob.type.startsWith('image/')) mimeType=fileOrBlob.type;
+  if(fileOrBlob&&fileOrBlob.type&&fileOrBlob.type.startsWith('image/'))mimeType=fileOrBlob.type;
 
-  // Convert to ArrayBuffer
   const arrayBuffer=await fileOrBlob.arrayBuffer();
-
-  const boundary='---SamaraUploadBoundary'+Date.now();
-  const metaJson=JSON.stringify({name:safeName,parents:[FOLDER_ID]});
-
-  // Build multipart body manually (most reliable across browsers)
+  const boundary='---SamaraUpload'+Date.now();
   const enc=new TextEncoder();
   const metaPart=enc.encode(
     '--'+boundary+'\r\n'+
     'Content-Type: application/json; charset=UTF-8\r\n\r\n'+
-    metaJson+'\r\n'+
+    JSON.stringify({name:safeName,parents:[FOLDER_ID]})+'\r\n'+
     '--'+boundary+'\r\n'+
     'Content-Type: '+mimeType+'\r\n\r\n'
   );
   const closePart=enc.encode('\r\n--'+boundary+'--');
-
   const body=new Uint8Array(metaPart.length+arrayBuffer.byteLength+closePart.length);
   body.set(metaPart,0);
   body.set(new Uint8Array(arrayBuffer),metaPart.length);
@@ -977,23 +901,19 @@ async function uploadToDrive(fileOrBlob, filename){
      headers:{Authorization:'Bearer '+token,'Content-Type':'multipart/related; boundary='+boundary},
      body:body}
   );
-
   if(!resp.ok){
-    const errBody=await resp.json().catch(()=>({}));
-    throw new Error('Drive upload failed ('+resp.status+'): '+(errBody.error?.message||'unknown error'));
+    const e=await resp.json().catch(()=>({}));
+    throw new Error('Drive upload failed ('+resp.status+'): '+(e.error?.message||'unknown'));
   }
-
   const up=await resp.json();
-  if(!up.id) throw new Error('Drive returned no file ID');
+  if(!up.id)throw new Error('Drive returned no file ID');
 
-  // Make the file publicly readable
-  const permResp=await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
+  // Make publicly readable
+  await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
     method:'POST',
     headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
     body:JSON.stringify({role:'reader',type:'anyone'})
   });
-  if(!permResp.ok) console.warn('Could not make file public — it may not display for other users');
-
   return `https://drive.google.com/uc?id=${up.id}`;
 }
 
@@ -1006,33 +926,23 @@ async function writeToSheet(i,link){
   });
   const d=await res.json();
   if(d.error)throw new Error('Sheet: '+d.error.message);
-
-  // 1. Update source-of-truth data FIRST so any future re-render picks it up
+  // Update data first — any future re-render reads from here
   allRows[i][IMG_COL_IDX]=link;
-
-  // 2. Update imgState so image is restored after any re-render
-  if(!imgState[i]) imgState[i]={urls:[],current:0,rowData:allRows[i]};
-  if(!imgState[i].urls.includes(link)) imgState[i].urls.unshift(link);
+  if(!imgState[i])imgState[i]={urls:[],current:0,rowData:allRows[i]};
+  if(!imgState[i].urls.includes(link))imgState[i].urls.unshift(link);
   imgState[i].current=0;
-
-  // 3. Update the live DOM
+  // Then update DOM
   const mainImg=document.getElementById('img-'+i);
   if(mainImg){mainImg.src=link;mainImg.style.display='block';}
+  updateCounter(i);
   const wrap=document.getElementById('imgwrap-'+i);
   if(wrap){const ph=wrap.querySelector('.img-ph');if(ph)ph.remove();}
-  updateCounter(i);
-
-  // 4. Flip badge to Approved
   const badge=document.getElementById('abadge-'+i);
   if(badge){badge.textContent='✓ Aprobada';badge.className='img-status-badge approved';}
-
-  // 5. Update "View image" link
   const slink=document.getElementById('slink-'+i);
   if(slink){slink.outerHTML=`<a class="saved-link show" href="${link}" target="_blank"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-2 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg> View image</a>`;}
-
-  // 6. Update add-image button label
   const addbtn=document.getElementById('addbtn-'+i);
-  if(addbtn)addbtn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Change image';
+  if(addbtn)addbtn.innerHTML='Change image';
 }
 
 async function saveImage(i){
@@ -1086,11 +996,10 @@ async function saveImage(i){
 }
 
 // ── ADMIN MANAGEMENT ──
-// FIX 2: admins stored in Sheet cell Z1 (above data) so all devices stay in sync
+// FIX 2: store in Sheet cell Z1 so admins sync across all devices/browsers
 const ADMIN_RANGE='Z1';
 
 function loadAdminsLocal(){
-  // Fallback: read from localStorage cache
   const s=localStorage.getItem('parts_admins');
   admins=s?JSON.parse(s):[...DEFAULT_ADMINS];
 }
@@ -1110,8 +1019,7 @@ async function loadAdminsFromSheet(){
         return;
       }
     }
-  }catch(e){console.warn('Could not load admins from sheet:',e);}
-  // Fall back to local cache / defaults
+  }catch(e){console.warn('Admin load fallback:',e);}
   loadAdminsLocal();
 }
 
@@ -1123,10 +1031,9 @@ async function saveAdmins(){
       {method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
        body:JSON.stringify({range:ADMIN_RANGE,majorDimension:'ROWS',values:[[JSON.stringify(admins)]]})}
     );
-  }catch(e){console.warn('Could not save admins to sheet:',e);}
+  }catch(e){console.warn('Admin save fallback:',e);}
 }
 
-// Recompute isAdmin and refresh UI visibility after any admin list change
 function refreshAdminUI(){
   isAdmin=admins.map(a=>a.toLowerCase()).includes(userEmail);
   const badge=document.getElementById('admin-badge');
@@ -1134,7 +1041,6 @@ function refreshAdminUI(){
   if(isAdmin){
     if(badge)badge.style.display='inline-block';
     if(bar)bar.style.display='flex';
-    // Show add-img buttons on already-rendered cards
     document.querySelectorAll('.add-img-btn').forEach(b=>b.classList.add('admin-visible'));
   }
 }
@@ -1161,7 +1067,7 @@ async function addAdmin(){
   await saveAdmins();
   refreshAdminUI();
   inp.value='';renderAdminList();
-  toast('Admin added: '+email+' — saved to Sheet ✓');
+  toast('Admin added: '+email+' ✓');
 }
 async function removeAdmin(i){
   if(admins[i].toLowerCase()===userEmail){toast("You can't remove yourself");return;}
