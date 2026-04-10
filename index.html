@@ -346,7 +346,7 @@
       <div class="sbar">
         <input class="sinput" id="q" type="text"
           placeholder="Search by Part Number, name or description — e.g. valve 1/2, gate valve stainless..."
-          oninput="onInput()" onkeydown="if(event.key==='Enter')doSearch()"/>
+          oninput="onInputClear()" onkeydown="if(event.key==='Enter')doSearch()"/>
         <button class="sbtn" onclick="doSearch()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
           <span class="sbtn-label">Search</span>
@@ -500,7 +500,14 @@ function buildLCFilters(){
 }
 
 // ── SEARCH ──
-function onInput(){clearTimeout(timer);timer=setTimeout(doSearch,280);}
+// ── SEARCH INPUT ──
+// Only trigger search on Enter or button click — NEVER while typing.
+// This prevents images from disappearing mid-keystroke.
+function onInputClear(){
+  // If the user clears the box entirely, go back to the empty/welcome state
+  if(!document.getElementById('q').value.trim()) showEmptyState();
+}
+let timer=null; // kept for compatibility, no longer used for search
 function quickSearch(term){document.getElementById('q').value=term;doSearch();}
 function saveRecentSearch(q){
   if(!q||recentSearches.includes(q))return;
@@ -583,7 +590,38 @@ function renderResults(res,terms){
   if(!res.length){c.innerHTML='<div class="empty">No results found — try fewer words or adjust the Lifecycle filter</div>';return;}
   c.innerHTML='<div class="grid">'+res.map(({r,i})=>cardHTML(r,i,terms)).join('')+'</div>'
     +(res.length>=60?'<div class="more">Showing top 60 results · Refine your search to see more</div>':'');
-  res.forEach(({r,i})=>initImgState(r,i));
+
+  // After DOM is rebuilt, restore already-loaded images and init new ones
+  res.forEach(({r,i})=>{
+    const existing=imgState[i];
+    if(existing && existing.urls.length){
+      // ── Restore previously loaded / approved image ──
+      const el=document.getElementById('img-'+i);
+      if(el){
+        el.src=existing.urls[existing.current];
+        el.style.display='block';
+        // Remove placeholder if present
+        const wrap=document.getElementById('imgwrap-'+i);
+        if(wrap){const ph=wrap.querySelector('.img-ph');if(ph)ph.remove();}
+        updateCounter(i);
+      }
+      // Restore badge state: if saved image exists, mark as Approved
+      const savedImg=allRows[i]?allRows[i][IMG_COL_IDX]||''  :'';
+      const badge=document.getElementById('abadge-'+i);
+      if(badge && savedImg){
+        badge.textContent='✓ Aprobada';
+        badge.className='img-status-badge approved';
+      }
+      // Hide quick-approve button if image already saved
+      if(savedImg){
+        const qb=document.getElementById('qabtn-'+i);
+        if(qb)qb.style.display='none';
+      }
+    } else {
+      // First time seeing this card — initialise normally
+      initImgState(r,i);
+    }
+  });
 }
 
 function fld(label,val){
@@ -968,18 +1006,33 @@ async function writeToSheet(i,link){
   });
   const d=await res.json();
   if(d.error)throw new Error('Sheet: '+d.error.message);
+
+  // 1. Update source-of-truth data FIRST so any future re-render picks it up
   allRows[i][IMG_COL_IDX]=link;
+
+  // 2. Update imgState so image is restored after any re-render
+  if(!imgState[i]) imgState[i]={urls:[],current:0,rowData:allRows[i]};
+  if(!imgState[i].urls.includes(link)) imgState[i].urls.unshift(link);
+  imgState[i].current=0;
+
+  // 3. Update the live DOM
   const mainImg=document.getElementById('img-'+i);
   if(mainImg){mainImg.src=link;mainImg.style.display='block';}
-  if(imgState[i]){if(!imgState[i].urls.includes(link))imgState[i].urls.unshift(link);imgState[i].current=0;updateCounter(i);}
   const wrap=document.getElementById('imgwrap-'+i);
   if(wrap){const ph=wrap.querySelector('.img-ph');if(ph)ph.remove();}
+  updateCounter(i);
+
+  // 4. Flip badge to Approved
   const badge=document.getElementById('abadge-'+i);
   if(badge){badge.textContent='✓ Aprobada';badge.className='img-status-badge approved';}
+
+  // 5. Update "View image" link
   const slink=document.getElementById('slink-'+i);
   if(slink){slink.outerHTML=`<a class="saved-link show" href="${link}" target="_blank"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-2 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg> View image</a>`;}
+
+  // 6. Update add-image button label
   const addbtn=document.getElementById('addbtn-'+i);
-  if(addbtn)addbtn.innerHTML='Change image';
+  if(addbtn)addbtn.innerHTML='<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Change image';
 }
 
 async function saveImage(i){
