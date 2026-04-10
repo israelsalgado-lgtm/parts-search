@@ -507,7 +507,7 @@ function onInputClear(){
   // If the user clears the box entirely, go back to the empty/welcome state
   if(!document.getElementById('q').value.trim()) showEmptyState();
 }
-let timer=null; // kept for compatibility, no longer used for search
+// timer kept on line above in global vars — no re-declaration needed
 function quickSearch(term){document.getElementById('q').value=term;doSearch();}
 function saveRecentSearch(q){
   if(!q||recentSearches.includes(q))return;
