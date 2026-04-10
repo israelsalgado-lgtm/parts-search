@@ -631,6 +631,25 @@ function buildImgQuery(r){
   return encodeURIComponent(`${pn} ${nm} -pinterest -etsy -alibaba`);
 }
 
+function buildSearchQuery(r){
+  const pn=(r[cNUM]||'').trim();
+  const nm=(r[cNAME]||'').trim();
+  // Smart query: use part number + key words from name
+  // Remove model numbers/codes at end that are too specific
+  const cleanName=nm.replace(/[-_,]\s*[A-Z0-9]{4,}$/,'').trim();
+  const words=cleanName.split(/\s+/).slice(0,6).join(' ');
+  return pn?`${pn} ${words}`:words;
+}
+
+function getBingImageUrls(r, count=5){
+  const q=buildSearchQuery(r);
+  const encoded=encodeURIComponent(q+' hardware industrial -pinterest -etsy');
+  // Bing thumbnail URLs — these load directly as img src without CORS issues
+  return Array.from({length:count},(_,k)=>
+    `https://tse${(k%4)+1}.mm.bing.net/th?q=${encoded}&w=200&h=160&c=7&rs=1&p=0&dpr=1&pid=InlineBlock&mkt=en-US&adlt=moderate&t=${k}`
+  );
+}
+
 function initImgState(r,i){
   if(imgState[i])return;
   const saved=r[IMG_COL_IDX]||'';
@@ -640,58 +659,36 @@ function initImgState(r,i){
     if(el){el.src=saved;el.style.display='block';updateCounter(i);}
     return;
   }
-  // Use IntersectionObserver — only load when card is visible
+  // No saved image — show Bing thumbnails via IntersectionObserver
   const wrap=document.getElementById('imgwrap-'+i);
   if(!wrap)return;
-  // Show placeholder initials
   showPlaceholder(i,r);
   const obs=new IntersectionObserver((entries,o)=>{
     if(!entries[0].isIntersecting)return;
     o.disconnect();
-    // Use Claude API to find real product images
-    findProductImages(r).then(urls=>{
-      if(!urls.length)return;
-      imgState[i].urls=urls;
-      imgState[i].current=0;
-      const imgEl=document.getElementById('img-'+i);
-      const ph=wrap.querySelector('.img-ph');if(ph)ph.remove();
-      if(imgEl){imgEl.src=urls[0];imgEl.style.display='block';updateCounter(i);}
-      if(isAdmin){
-        const qb=document.getElementById('qabtn-'+i);
-        if(qb)qb.style.display='block';
-      }
-    });
+    const urls=getBingImageUrls(r,5);
+    imgState[i].urls=urls;
+    imgState[i].current=0;
+    const imgEl=document.getElementById('img-'+i);
+    const ph=wrap.querySelector('.img-spin-ph');
+    // Try loading first Bing thumbnail
+    if(imgEl){
+      imgEl.src=urls[0];
+      imgEl.style.display='block';
+      imgEl.onload=()=>{
+        const ph2=wrap.querySelector('.img-ph');if(ph2)ph2.remove();
+        updateCounter(i);
+        // Show approve button for admins
+        if(isAdmin){const qb=document.getElementById('qabtn-'+i);if(qb)qb.style.display='';}
+      };
+    }
   },{threshold:0.1});
   obs.observe(wrap);
 }
 
 async function findProductImages(r){
-  const pn=(r[cNUM]||'').trim();
-  const nm=(r[cNAME]||'').trim();
-  const desc=(r[cDESC]||'').trim().slice(0,60);
-  try{
-    const resp=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:'claude-sonnet-4-20250514',
-        max_tokens:800,
-        tools:[{type:'web_search_20250305',name:'web_search'}],
-        system:`You find product images for industrial hardware parts from supplier websites like grainger.com, zoro.com, mcmaster.com, homedepot.com, supplyhouse.com, ferguson.com, or manufacturer sites.
-Search for the part and return ONLY a raw JSON array of 3-5 direct image URLs (ending in .jpg .png .webp .gif).
-Rules: No pinterest, no etsy, no alibaba, no aliexpress, no social media. Only real product photos from reputable suppliers.
-Respond with ONLY the JSON array. No explanation. Example: ["https://static.grainger.com/img/1.jpg","https://cdn.zoro.com/img/2.jpg"]`,
-        messages:[{role:'user',content:`Part#: ${pn} | Name: ${nm}${desc?' | Desc: '+desc:''}`}]
-      })
-    });
-    const data=await resp.json();
-    const textBlock=data.content?.find(b=>b.type==='text');
-    if(!textBlock)return[];
-    const match=textBlock.text.match(/\[[\s\S]*?\]/);
-    if(!match)return[];
-    const urls=JSON.parse(match[0]);
-    return Array.isArray(urls)?urls.filter(u=>u&&u.startsWith('http')&&!u.includes('pinterest')&&!u.includes('etsy')).slice(0,5):[];
-  }catch(e){console.error('findProductImages:',e);return[];}
+  // Kept for compatibility — now using Bing directly
+  return getBingImageUrls(r,5);
 }
 
 function showPlaceholder(i,r){
@@ -744,18 +741,25 @@ async function quickApprove(e,i){
   const st=imgState[i];if(!st||!st.urls.length)return;
   const imgEl=document.getElementById('img-'+i);
   const src=imgEl?imgEl.src:'';
-  if(!src||imgEl.style.display==='none'){toast('No image to approve — wait for image to load first');return;}
+  if(!src||imgEl.style.display==='none'){toast('No image visible — use ‹ › to find one first');return;}
   toast('Saving approved image...');
   try{
     const pn=(allRows[i][cNUM]||'item').replace(/[^\w-]/g,'_');
     let driveLink=src;
+    // Try to upload a copy to Drive (may fail due to CORS on some sources)
     try{
-      const blob=await(await fetch(src)).blob();
-      driveLink=await uploadToDrive(blob,`${pn}_${Date.now()}.jpg`);
-    }catch{/* keep original src */}
+      const controller=new AbortController();
+      setTimeout(()=>controller.abort(),8000);
+      const blob=await(await fetch(src,{signal:controller.signal})).blob();
+      if(blob.size>0) driveLink=await uploadToDrive(blob,`${pn}_${Date.now()}.jpg`);
+    }catch{
+      // CORS blocked or timeout — save the direct URL as reference
+      // It will still display correctly in the app
+      driveLink=src;
+    }
     await writeToSheet(i,driveLink);
     const qb=document.getElementById('qabtn-'+i);if(qb)qb.remove();
-    toast('✓ Image approved and saved to Drive & Sheet');
+    toast('✓ Image approved and saved');
   }catch(err){toast('Error: '+err.message);}
 }
 
