@@ -433,13 +433,9 @@ window.onload = function () {
 function initGSI(silentOnly) {
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CONFIG.CLIENT_ID,
-    scope: [
-      'https://www.googleapis.com/auth/spreadsheets.readonly',
-      'https://www.googleapis.com/auth/userinfo.profile',
-      'https://www.googleapis.com/auth/userinfo.email',
-    ].join(' '),
-    callback: async (resp) => {
-      if (resp.error) { console.warn('Token error:', resp.error); return; }
+    scope: 'https://www.googleapis.com/auth/spreadsheets.readonly',
+    callback: (resp) => {
+      if (resp.error) { console.error('Token error:', resp.error); return; }
       accessToken = resp.access_token;
 
       const exp = Date.now() + 55 * 60 * 1000;
@@ -447,17 +443,9 @@ function initGSI(silentOnly) {
       localStorage.setItem('samara_token_exp', String(exp));
 
       if (!currentUser) {
-        try {
-          const r = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-            headers: { Authorization: 'Bearer ' + accessToken }
-          });
-          const u = await r.json();
-          currentUser = { name: u.name, email: u.email, picture: u.picture, given_name: u.given_name };
-          localStorage.setItem('samara_user', JSON.stringify(currentUser));
-        } catch(e) {
-          currentUser = { name: 'Usuario', email: '', picture: '', given_name: 'Usuario' };
-        }
+        currentUser = { name: 'Usuario', email: '', picture: '', given_name: 'Usuario' };
       }
+      localStorage.setItem('samara_user', JSON.stringify(currentUser));
 
       if (!silentOnly) {
         showApp();
@@ -466,23 +454,35 @@ function initGSI(silentOnly) {
     },
   });
 
+  // One Tap: identifica al usuario (nombre, foto) sin pedir permisos extra
+  google.accounts.id.initialize({
+    client_id: CONFIG.CLIENT_ID,
+    auto_select: true,
+    callback: (response) => {
+      const p = JSON.parse(atob(response.credential.split('.')[1]));
+      currentUser = { name: p.name, email: p.email, picture: p.picture, given_name: p.given_name };
+      // Ahora pedir token de Sheets (sin prompt porque ya se identificó)
+      tokenClient.requestAccessToken({ prompt: '' });
+    },
+  });
+
   if (!silentOnly) {
-    google.accounts.id.initialize({
-      client_id: CONFIG.CLIENT_ID,
-      callback: (response) => {
-        const payload = JSON.parse(atob(response.credential.split('.')[1]));
-        currentUser = { name: payload.name, email: payload.email, picture: payload.picture, given_name: payload.given_name };
-        localStorage.setItem('samara_user', JSON.stringify(currentUser));
-        tokenClient.requestAccessToken({ prompt: '' });
-      },
-      auto_select: true,
+    // Intentar One Tap silencioso primero
+    google.accounts.id.prompt((n) => {
+      // Si One Tap no aplica (múltiples cuentas, bloqueado, etc.) el botón ya está visible
+      // El usuario puede hacer clic en "Iniciar sesión" manualmente
     });
-    google.accounts.id.prompt();
   }
 }
 
 function signIn() {
-  tokenClient.requestAccessToken({ prompt: 'select_account' });
+  // Primero intentar One Tap para obtener identidad
+  google.accounts.id.prompt((n) => {
+    if (n.isNotDisplayed() || n.isSkippedMoment()) {
+      // One Tap no pudo — ir directo al token (sin nombre/foto pero funciona)
+      tokenClient.requestAccessToken({ prompt: 'select_account' });
+    }
+  });
 }
 
 function signOut() {
