@@ -165,20 +165,6 @@
     .iup-save{padding:7px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif}
     .iup-save:hover{background:var(--accent-dk)}
     .iup-save:disabled{opacity:.5;cursor:not-allowed}
-    /* Image search panel */
-    .img-search-panel{display:none;border-top:0.5px solid var(--border);padding:12px 13px;background:var(--surface)}
-    .img-search-panel.open{display:block}
-    .img-search-title{font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:500}
-    .img-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:6px;margin-bottom:8px}
-    .img-thumb-item{position:relative;border-radius:6px;overflow:hidden;border:2px solid transparent;cursor:pointer;aspect-ratio:1;background:var(--border);transition:border-color .15s}
-    .img-thumb-item:hover{border-color:var(--accent)}
-    .img-thumb-item.selected{border-color:var(--accent)}
-    .img-thumb-item img{width:100%;height:100%;object-fit:cover;display:block}
-    .img-thumb-check{position:absolute;top:3px;right:3px;width:18px;height:18px;border-radius:50%;background:var(--accent);display:none;align-items:center;justify-content:center}
-    .img-thumb-item.selected .img-thumb-check{display:flex}
-    .img-search-actions{display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap}
-    .img-search-links{display:flex;gap:6px;flex-wrap:wrap}
-    .img-search-link{font-size:11px;color:var(--blue);padding:3px 8px;border-radius:4px;background:var(--blue-bg);text-decoration:none;white-space:nowrap}
 
     mark{background:#d4f0e4;border-radius:2px;padding:0 1px}
     .empty{padding:2rem;text-align:center;color:var(--muted);font-size:13px}
@@ -347,7 +333,7 @@ function initAuth(){
   setLoading('Checking session...');
   google.accounts.oauth2.initTokenClient({
     client_id:CLIENT_ID,
-    scope:'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+    scope:'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
     prompt:'',
     callback:async r=>{
       if(r.error||!r.access_token){show('login-screen');return;}
@@ -361,7 +347,7 @@ function initAuth(){
 function requestToken(prompt){
   google.accounts.oauth2.initTokenClient({
     client_id:CLIENT_ID,
-    scope:'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+    scope:'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
     prompt,
     callback:async r=>{
       if(r.error){show('login-screen');document.getElementById('login-err').textContent='Error: '+r.error;return;}
@@ -548,16 +534,20 @@ function cardHTML(r,i,terms){
     <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
     ${savedImg?'Change image':'+ Image'}
   </button>`;
-  const approveBtn=''; // approval now via image grid panel
+  const approveBtn=isAdmin&&!savedImg?`<button class="quick-approve-btn" id="qabtn-${i}" onclick="quickApprove(event,${i})">✓ Approve</button>`:'';
 
   return `<div class="rcard" id="card-${i}">
     <div class="rcard-inner">
-      <div class="rimg-wrap" id="imgwrap-${i}" onclick="savedImg?openModal(${i}):toggleImgPanel(${i})">
-        <img class="main-img" id="img-${i}" src="${savedImg||''}" alt="${nm}" onerror="imgError(${i})" style="display:${savedImg?'block':'none'}" loading="lazy"/>
+      <div class="rimg-wrap" id="imgwrap-${i}" onclick="openModal(${i})">
+        <img class="main-img" id="img-${i}" src="" alt="${nm}" onerror="imgError(${i})" style="display:none" loading="lazy"/>
         <div class="img-overlay">
-          <div class="img-top">${approvedBadge}</div>
+          <div class="img-top">${approvedBadge}${approveBtn}</div>
           <div class="img-bottom">
-            ${!savedImg&&isAdmin?`<span style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.45);color:#fff;font-size:10px;text-align:center;padding:4px;font-family:'DM Sans',sans-serif">Click to find image</span>`:''}
+            <span class="img-counter" id="ictr-${i}" style="display:none"></span>
+            <div class="img-nav">
+              <button class="img-nav-btn" onclick="prevImg(event,${i})">&#8249;</button>
+              <button class="img-nav-btn" onclick="nextImg(event,${i})">&#8250;</button>
+            </div>
           </div>
         </div>
       </div>
@@ -631,45 +621,32 @@ function cardHTML(r,i,terms){
         <button class="iup-save" id="iup-save-${i}" onclick="saveImage(${i})" disabled>Save image</button>
       </div>
     </div>
-    <!-- Image search panel -->
-    <div class="img-search-panel" id="imgpanel-${i}">
-      <div class="img-search-title">Select the best matching image — click to approve</div>
-      <div class="img-grid" id="imggrid-${i}">
-        <div style="font-size:12px;color:var(--muted);padding:8px;grid-column:1/-1;display:flex;align-items:center;gap:8px">
-          <div class="spinner" style="width:16px;height:16px;border-width:2px"></div> Searching images...
-        </div>
-      </div>
-      <div class="img-search-actions">
-        <div class="img-search-links">
-          <a class="img-search-link" href="https://www.google.com/search?tbm=isch&q=${encodeURIComponent((r[cNUM]||'')+' '+(r[cNAME]||'')+' -pinterest')}" target="_blank">Google Images ↗</a>
-          <a class="img-search-link" href="https://www.grainger.com/search?searchQuery=${encodeURIComponent(r[cNAME]||r[cNUM]||'')}" target="_blank">Grainger ↗</a>
-          <a class="img-search-link" href="https://www.zoro.com/search?q=${encodeURIComponent(r[cNAME]||r[cNUM]||'')}" target="_blank">Zoro ↗</a>
-          <a class="img-search-link" href="https://www.mcmaster.com/#${encodeURIComponent(r[cNAME]||r[cNUM]||'')}" target="_blank">McMaster ↗</a>
-        </div>
-        <button onclick="toggleImgPanel(${i})" style="font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer">Close</button>
-      </div>
-    </div>
   </div>`;
 }
 
 // ── IMAGE STATE ──
-const imgPanelFetched = {};
+function buildImgQuery(r){
+  const pn=(r[cNUM]||'').trim();
+  const nm=(r[cNAME]||'').trim().split(/\s+/).slice(0,5).join(' ');
+  return encodeURIComponent(`${pn} ${nm} -pinterest -etsy -alibaba`);
+}
 
 function buildSearchQuery(r){
   const pn=(r[cNUM]||'').trim();
   const nm=(r[cNAME]||'').trim();
-  // Use name primarily — part numbers are internal and give bad image results
-  // Remove model codes at end (series of caps/numbers after dash/comma)
-  const cleanName=nm.replace(/[,\s]+[-_]?[A-Z0-9]{4,}$/,'').trim();
-  const words=cleanName.split(/\s+/).slice(0,5).join(' ');
-  return words||pn;
+  // Smart query: use part number + key words from name
+  // Remove model numbers/codes at end that are too specific
+  const cleanName=nm.replace(/[-_,]\s*[A-Z0-9]{4,}$/,'').trim();
+  const words=cleanName.split(/\s+/).slice(0,6).join(' ');
+  return pn?`${pn} ${words}`:words;
 }
 
-function getBingUrls(r, count=8){
+function getBingImageUrls(r, count=5){
   const q=buildSearchQuery(r);
-  const encoded=encodeURIComponent(q+' product hardware');
+  const encoded=encodeURIComponent(q+' hardware industrial -pinterest -etsy');
+  // Bing thumbnail URLs — these load directly as img src without CORS issues
   return Array.from({length:count},(_,k)=>
-    `https://tse${(k%4)+1}.mm.bing.net/th?q=${encoded}&w=160&h=120&c=7&rs=1&p=0&dpr=1&pid=InlineBlock&mkt=en-US&adlt=moderate&t=${k}`
+    `https://tse${(k%4)+1}.mm.bing.net/th?q=${encoded}&w=200&h=160&c=7&rs=1&p=0&dpr=1&pid=InlineBlock&mkt=en-US&adlt=moderate&t=${k}`
   );
 }
 
@@ -677,83 +654,77 @@ function initImgState(r,i){
   if(imgState[i])return;
   const saved=r[IMG_COL_IDX]||'';
   imgState[i]={urls:saved?[saved]:[],current:0,rowData:r};
-  // If saved image exists, it's already set in the img src via cardHTML
-  // Nothing else to do on init for saved images
-}
-
-async function toggleImgPanel(i){
-  if(!isAdmin){
-    // Non-admins: just open modal if there's an image
-    const el=document.getElementById('img-'+i);
-    if(el&&el.style.display!=='none')openModal(i);
+  const el=document.getElementById('img-'+i);
+  if(saved){
+    if(el){el.src=saved;el.style.display='block';updateCounter(i);}
     return;
   }
-  const panel=document.getElementById('imgpanel-'+i);
-  if(!panel)return;
-  const isOpen=panel.classList.contains('open');
-  // Close all other panels
-  document.querySelectorAll('.img-search-panel.open').forEach(p=>p.classList.remove('open'));
-  document.querySelectorAll('.img-upload-panel.open').forEach(p=>p.classList.remove('open'));
-  if(isOpen)return;
-  panel.classList.add('open');
-  // Load images if not already fetched
-  if(!imgPanelFetched[i]){
-    imgPanelFetched[i]=true;
-    const r=allRows[i];
-    const urls=getBingUrls(r,8);
-    renderImgGrid(i, urls, r);
-  }
-}
-
-function renderImgGrid(i, urls, r){
-  const grid=document.getElementById('imggrid-'+i);
-  if(!grid)return;
-  const saved=allRows[i]?allRows[i][IMG_COL_IDX]||'':'';
-  grid.innerHTML=urls.map((url,k)=>`
-    <div class="img-thumb-item ${saved===url?'selected':''}" id="imgt-${i}-${k}" onclick="selectGridImage(${i},'${url}',${k})">
-      <img src="${url}" alt="" loading="lazy" onerror="this.closest('.img-thumb-item').style.display='none'"/>
-      <div class="img-thumb-check"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg></div>
-    </div>`).join('');
-}
-
-async function selectGridImage(i, url, idx){
-  if(!isAdmin){toast('No permission to approve images');return;}
-  // Mark selected visually immediately
-  document.querySelectorAll(`[id^="imgt-${i}-"]`).forEach(el=>el.classList.remove('selected'));
-  const el=document.getElementById(`imgt-${i}-${idx}`);
-  if(el)el.classList.add('selected');
-  toast('Saving image...');
-  try{
-    const pn=(allRows[i][cNUM]||'item').replace(/[^\w-]/g,'_').slice(0,30);
-    let driveLink=url;
-    // Try to upload a copy to Drive
-    try{
-      const controller=new AbortController();
-      setTimeout(()=>controller.abort(),8000);
-      const blob=await(await fetch(url,{signal:controller.signal})).blob();
-      if(blob&&blob.size>500) driveLink=await uploadToDrive(blob,`${pn}_${Date.now()}.jpg`);
-    }catch(e){
-      console.warn('Could not copy to Drive, saving URL directly:',e.message);
-    }
-    await writeToSheet(i, driveLink);
-    // Update thumbnail in card
+  // No saved image — show Bing thumbnails via IntersectionObserver
+  const wrap=document.getElementById('imgwrap-'+i);
+  if(!wrap)return;
+  showPlaceholder(i,r);
+  const obs=new IntersectionObserver((entries,o)=>{
+    if(!entries[0].isIntersecting)return;
+    o.disconnect();
+    const urls=getBingImageUrls(r,5);
+    imgState[i].urls=urls;
+    imgState[i].current=0;
     const imgEl=document.getElementById('img-'+i);
-    if(imgEl){imgEl.src=driveLink;imgEl.style.display='block';}
-    // Close panel
-    const panel=document.getElementById('imgpanel-'+i);
-    if(panel)panel.classList.remove('open');
-    toast('✓ Image approved and saved');
-  }catch(err){
-    console.error('selectGridImage error:',err);
-    toast('Error saving image: '+err.message);
-    // Revert visual selection
-    document.querySelectorAll(`[id^="imgt-${i}-"]`).forEach(el=>el.classList.remove('selected'));
-  }
+    const ph=wrap.querySelector('.img-spin-ph');
+    // Try loading first Bing thumbnail
+    if(imgEl){
+      imgEl.src=urls[0];
+      imgEl.style.display='block';
+      imgEl.onload=()=>{
+        const ph2=wrap.querySelector('.img-ph');if(ph2)ph2.remove();
+        updateCounter(i);
+        // Show approve button for admins
+        if(isAdmin){const qb=document.getElementById('qabtn-'+i);if(qb)qb.style.display='';}
+      };
+    }
+  },{threshold:0.1});
+  obs.observe(wrap);
 }
 
-function imgError(i){
+async function findProductImages(r){
+  // Kept for compatibility — now using Bing directly
+  return getBingImageUrls(r,5);
+}
+
+function showPlaceholder(i,r){
+  const wrap=document.getElementById('imgwrap-'+i);
+  if(!wrap||wrap.querySelector('.img-ph'))return;
+  const initials=((r[cNAME]||r[cNUM]||'?').split(/\s+/).slice(0,2).map(w=>w[0]||'').join('')).toUpperCase()||'?';
+  const colors=['#1D9E75','#185FA5','#854F0B','#A32D2D','#5F5E5A'];
+  const color=colors[i%colors.length];
+  const ph=document.createElement('div');
+  ph.className='img-ph';
+  ph.style.cssText=`position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;background:${color}15`;
+  ph.innerHTML=`<div style="width:38px;height:38px;border-radius:8px;background:${color};display:flex;align-items:center;justify-content:center;font-family:Rajdhani,sans-serif;font-size:15px;font-weight:600;color:#fff">${initials}</div><span style="font-size:9px;color:var(--muted);text-align:center;padding:0 6px;line-height:1.3">${(r[cNUM]||'').slice(0,14)}</span>`;
+  wrap.appendChild(ph);
+}
+
+function updateCounter(i){
+  const st=imgState[i];if(!st)return;
+  const el=document.getElementById('ictr-'+i);
+  if(el){
+    if(st.urls.length>1){el.textContent=`${st.current+1}/${st.urls.length}`;el.style.display='inline';}
+    else el.style.display='none';
+  }
+}
+function prevImg(e,i){e.stopPropagation();cycleImg(i,-1);}
+function nextImg(e,i){e.stopPropagation();cycleImg(i,1);}
+function cycleImg(i,d){
+  const st=imgState[i];if(!st||!st.urls.length)return;
+  st.current=(st.current+d+st.urls.length)%st.urls.length;
   const el=document.getElementById('img-'+i);
-  if(el){el.style.display='none';}
+  if(el){el.src=st.urls[st.current];el.style.display='block';updateCounter(i);}
+}
+function imgError(i){
+  const el=document.getElementById('img-'+i);if(!el)return;
+  const st=imgState[i];
+  if(st&&st.current<st.urls.length-1){st.current++;el.src=st.urls[st.current];updateCounter(i);}
+  else{el.style.display='none';showPlaceholder(i,st?st.rowData:{});}
 }
 function openModal(i){
   const el=document.getElementById('img-'+i);
@@ -762,9 +733,36 @@ function openModal(i){
   document.getElementById('img-modal').classList.add('open');
 }
 function closeModal(e){if(e.target===document.getElementById('img-modal'))document.getElementById('img-modal').classList.remove('open');}
-function updateCounter(i){}
 
 // ── QUICK APPROVE ──
+async function quickApprove(e,i){
+  e.stopPropagation();
+  if(!isAdmin){toast('No permission to approve images');return;}
+  const st=imgState[i];if(!st||!st.urls.length)return;
+  const imgEl=document.getElementById('img-'+i);
+  const src=imgEl?imgEl.src:'';
+  if(!src||imgEl.style.display==='none'){toast('No image visible — use ‹ › to find one first');return;}
+  toast('Saving approved image...');
+  try{
+    const pn=(allRows[i][cNUM]||'item').replace(/[^\w-]/g,'_');
+    let driveLink=src;
+    // Try to upload a copy to Drive (may fail due to CORS on some sources)
+    try{
+      const controller=new AbortController();
+      setTimeout(()=>controller.abort(),8000);
+      const blob=await(await fetch(src,{signal:controller.signal})).blob();
+      if(blob.size>0) driveLink=await uploadToDrive(blob,`${pn}_${Date.now()}.jpg`);
+    }catch{
+      // CORS blocked or timeout — save the direct URL as reference
+      // It will still display correctly in the app
+      driveLink=src;
+    }
+    await writeToSheet(i,driveLink);
+    const qb=document.getElementById('qabtn-'+i);if(qb)qb.remove();
+    toast('✓ Image approved and saved');
+  }catch(err){toast('Error: '+err.message);}
+}
+
 // ── UPLOAD PANEL ──
 function toggleUploadPanel(i){
   if(!isAdmin){toast('Only administrators can assign images');return;}
@@ -830,39 +828,46 @@ function checkSaveReady(i){
 
 // ── DRIVE & SHEET ──
 async function uploadToDrive(fileOrBlob, filename){
-  const safeName=(filename||'image_'+Date.now()+'.jpg').replace(/[\/\\:*?"<>|]/g,'_').slice(0,100);
-  let mimeType=(fileOrBlob instanceof Blob?fileOrBlob.type:'')||'image/jpeg';
-  if(!mimeType.startsWith('image/'))mimeType='image/jpeg';
-  const fileObj=new File([fileOrBlob],safeName,{type:mimeType});
+  // Sanitize filename — remove any path separators or special chars
+  const safeName = filename.replace(/[\/\\:*?"<>|]/g,'_').slice(0,100) || 'image_'+Date.now()+'.jpg';
+  // Determine mime type
+  let mimeType = 'image/jpeg';
+  if(fileOrBlob instanceof File) mimeType = fileOrBlob.type || 'image/jpeg';
+  else if(fileOrBlob instanceof Blob) mimeType = fileOrBlob.type || 'image/jpeg';
+  if(!mimeType.startsWith('image/')) mimeType = 'image/jpeg';
 
-  async function doUpload(withFolder){
-    const meta={name:safeName};
-    if(withFolder)meta.parents=[FOLDER_ID];
-    const form=new FormData();
-    form.append('metadata',new Blob([JSON.stringify(meta)],{type:'application/json'}));
-    form.append('file',fileObj);
-    const r=await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
-      method:'POST',headers:{Authorization:'Bearer '+token},body:form
-    });
-    return r.json();
+  const metadata = {name: safeName, parents: [FOLDER_ID]};
+
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], {type:'application/json'}));
+
+  // Always create a proper File object with correct name and type
+  let fileToUpload;
+  if(fileOrBlob instanceof File){
+    // Re-create with safe name
+    fileToUpload = new File([fileOrBlob], safeName, {type: mimeType});
+  } else {
+    fileToUpload = new File([fileOrBlob], safeName, {type: mimeType});
   }
+  form.append('file', fileToUpload);
 
-  // Try folder first, then fall back to Drive root
-  let up=await doUpload(true);
-  if(up.error){
-    console.warn('Folder upload failed ('+up.error.message+'), trying Drive root...');
-    up=await doUpload(false);
-  }
-  if(up.error)throw new Error(up.error.message);
-  if(!up.id)throw new Error('Drive returned no file ID');
+  const resp = await fetch(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',
+    {method:'POST', headers:{Authorization:'Bearer '+token}, body:form}
+  );
+  const up = await resp.json();
+  if(up.error) throw new Error('Drive upload failed: '+up.error.message);
+  if(!up.id) throw new Error('Drive returned no file ID');
 
-  await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
-    method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-    body:JSON.stringify({role:'reader',type:'anyone'})
+  // Make file publicly readable
+  await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`, {
+    method:'POST',
+    headers:{Authorization:'Bearer '+token, 'Content-Type':'application/json'},
+    body:JSON.stringify({role:'reader', type:'anyone'})
   });
+
   return `https://drive.google.com/uc?id=${up.id}`;
 }
-
 
 async function writeToSheet(i,link){
   const sheetRow=HEADER_ROW+1+i;
