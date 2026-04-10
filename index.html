@@ -222,8 +222,45 @@
     </div>
 
     <div class="admin-bar" id="admin-bar" style="display:none">
-      <div class="admin-bar-text">Admin mode — you can approve images and manage access</div>
+      <div class="admin-bar-text">Admin mode — you can approve images, manage access, and update the inventory</div>
       <button class="admin-btn" onclick="toggleAdminPanel()">Manage admins</button>
+      <button class="admin-btn" onclick="toggleUpdatePanel()" style="background:#0F6E56;color:#fff;border-color:#0F6E56">↑ Update from Arena</button>
+    </div>
+
+    <!-- Update Panel -->
+    <div id="update-panel" style="display:none;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad-lg);padding:1.25rem;margin-bottom:1rem">
+      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px">Update Inventory from Arena Report</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:1rem;line-height:1.5">
+        Upload the <strong>.xls</strong> file exported from Arena. The app will match by Item Number and update all data fields while <strong>preserving all approved images</strong> in column M.
+      </div>
+
+      <!-- File drop zone -->
+      <div id="arena-dropzone" style="border:1.5px dashed var(--border2);border-radius:var(--rad-md);padding:20px;text-align:center;cursor:pointer;position:relative;transition:all .15s"
+        ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='var(--accent-lt)'"
+        ondragleave="this.style.borderColor='';this.style.background=''"
+        ondrop="handleArenaFileDrop(event)">
+        <input type="file" accept=".xls,.xlsx,.csv" id="arena-file-input" onchange="handleArenaFileSelect(event)"
+          style="position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%"/>
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" style="margin-bottom:8px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <div style="font-size:13px;color:var(--text);font-weight:500">Drop Arena report here or <span style="color:var(--accent)">click to browse</span></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">Supports .xls, .xlsx, .csv from Arena</div>
+      </div>
+
+      <!-- Preview / confirm -->
+      <div id="update-preview" style="display:none;margin-top:1rem">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem" id="update-stats"></div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:8px" id="update-detail"></div>
+        <div style="display:flex;gap:8px;justify-content:flex-end">
+          <button onclick="cancelUpdate()" style="padding:8px 16px;border:0.5px solid var(--border2);border-radius:var(--rad-md);background:none;cursor:pointer;font-size:13px;color:var(--muted);font-family:'DM Sans',sans-serif">Cancel</button>
+          <button onclick="confirmUpdate()" id="confirm-update-btn" style="padding:8px 20px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif">Apply Update</button>
+        </div>
+      </div>
+      <div id="update-progress" style="display:none;margin-top:1rem">
+        <div style="font-size:13px;color:var(--text);margin-bottom:8px" id="update-progress-text">Writing to Sheet...</div>
+        <div style="height:6px;background:var(--surface);border-radius:3px;overflow:hidden">
+          <div id="update-progress-bar" style="height:100%;background:var(--accent);border-radius:3px;width:0%;transition:width .3s"></div>
+        </div>
+      </div>
     </div>
 
     <div id="admin-panel">
@@ -263,6 +300,7 @@
 </div>
 
 <script src="https://accounts.google.com/gsi/client" async onload="initAuth()"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 const CLIENT_ID   = '770247409341-47d0gssat51h609mgjls5v6hipes72db.apps.googleusercontent.com';
 const SHEET_ID    = '1bVyQkDe1ToIDQFEejECvHTJe26ScV75-6OvHX20z0YM';
@@ -882,6 +920,236 @@ function addAdmin(){
 function removeAdmin(i){
   if(admins[i].toLowerCase()===userEmail){toast("You can't remove yourself");return;}
   admins.splice(i,1);saveAdmins();renderAdminList();toast('Admin removed');
+}
+
+// ── ARENA UPDATE ──
+let pendingUpdateRows = [];
+
+function toggleUpdatePanel(){
+  const p=document.getElementById('update-panel');
+  p.style.display=p.style.display==='none'||!p.style.display?'block':'none';
+  if(p.style.display==='block') resetUpdatePanel();
+}
+
+function resetUpdatePanel(){
+  pendingUpdateRows=[];
+  document.getElementById('update-preview').style.display='none';
+  document.getElementById('update-progress').style.display='none';
+  document.getElementById('arena-dropzone').style.display='block';
+  const inp=document.getElementById('arena-file-input');
+  if(inp)inp.value='';
+}
+
+function handleArenaFileDrop(e){
+  e.preventDefault();
+  document.getElementById('arena-dropzone').style.borderColor='';
+  document.getElementById('arena-dropzone').style.background='';
+  const file=e.dataTransfer.files[0];
+  if(file)processArenaFile(file);
+}
+
+function handleArenaFileSelect(e){
+  const file=e.target.files[0];
+  if(file)processArenaFile(file);
+}
+
+function processArenaFile(file){
+  toast('Reading Arena report...');
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      let arenaRows=[];
+      const data=e.target.result;
+      const name=file.name.toLowerCase();
+
+      if(name.endsWith('.xls')||name.endsWith('.xlsx')){
+        // Try SheetJS first
+        try{
+          const wb=XLSX.read(data,{type:'array'});
+          const ws=wb.Sheets[wb.SheetNames[0]];
+          const json=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+          // Find header row (row with "Item Number")
+          let headerIdx=json.findIndex(r=>r.some(c=>String(c).toLowerCase().includes('item number')));
+          if(headerIdx===-1)headerIdx=0;
+          arenaRows=json.slice(headerIdx+1).filter(r=>r[0]&&String(r[0]).trim());
+        }catch{
+          // Fallback: parse as HTML (Arena XLS is actually HTML)
+          const text=new TextDecoder().decode(data);
+          arenaRows=parseArenaHTML(text);
+        }
+      } else if(name.endsWith('.csv')){
+        const text=new TextDecoder().decode(data);
+        arenaRows=text.split('\n').slice(1).filter(l=>l.trim()).map(l=>{
+          const cols=l.split(',').map(c=>c.replace(/^"|"$/g,'').trim());
+          return cols;
+        }).filter(r=>r[0]);
+      }
+
+      if(!arenaRows.length){toast('No data found in file');return;}
+      analyzeUpdate(arenaRows);
+    }catch(err){
+      console.error('File parse error:',err);
+      toast('Error reading file: '+err.message);
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function parseArenaHTML(html){
+  const parser=new DOMParser();
+  const doc=parser.parseFromString(html,'text/html');
+  const rows=doc.querySelectorAll('table tr');
+  const result=[];
+  let headerFound=false;
+  rows.forEach(tr=>{
+    const cells=[...tr.querySelectorAll('td,th')].map(td=>td.textContent.trim());
+    if(!headerFound){
+      if(cells.some(c=>c.toLowerCase().includes('item number'))){headerFound=true;}
+      return;
+    }
+    if(cells[0])result.push(cells);
+  });
+  return result;
+}
+
+function analyzeUpdate(arenaRows){
+  // Build lookup of current Sheet data by Item Number
+  const sheetByPN={};
+  allRows.forEach((r,i)=>{ if(r[cNUM]) sheetByPN[String(r[cNUM]).trim()]=i; });
+
+  let newItems=[], updated=[], unchanged=[];
+
+  arenaRows.forEach(ar=>{
+    const pn=String(ar[0]||'').trim();
+    if(!pn)return;
+    if(!(pn in sheetByPN)){
+      newItems.push(ar);
+    } else {
+      const idx=sheetByPN[pn];
+      const existing=allRows[idx];
+      // Compare columns 0-11 (A-L), ignore M (image)
+      const hasChanges=ar.slice(0,12).some((v,ci)=>String(v||'').trim()!==String(existing[ci]||'').trim());
+      if(hasChanges) updated.push({ar,idx});
+      else unchanged.push(pn);
+    }
+  });
+
+  pendingUpdateRows={newItems,updated,unchanged,arenaRows};
+
+  // Show preview
+  document.getElementById('update-stats').innerHTML=`
+    <div style="background:var(--accent-lt);border-radius:var(--rad-md);padding:10px;text-align:center">
+      <div style="font-size:22px;font-weight:600;color:var(--accent);font-family:Rajdhani,sans-serif">${newItems.length}</div>
+      <div style="font-size:11px;color:#0F6E56">New items</div>
+    </div>
+    <div style="background:var(--blue-bg);border-radius:var(--rad-md);padding:10px;text-align:center">
+      <div style="font-size:22px;font-weight:600;color:var(--blue);font-family:Rajdhani,sans-serif">${updated.length}</div>
+      <div style="font-size:11px;color:var(--blue)">Updated</div>
+    </div>
+    <div style="background:var(--surface);border-radius:var(--rad-md);padding:10px;text-align:center">
+      <div style="font-size:22px;font-weight:600;color:var(--muted);font-family:Rajdhani,sans-serif">${unchanged.length}</div>
+      <div style="font-size:11px;color:var(--muted)">No changes</div>
+    </div>`;
+
+  document.getElementById('update-detail').innerHTML=
+    `<strong>${arenaRows.length}</strong> items in Arena report · `+
+    `<strong>${newItems.length}</strong> will be added at the bottom · `+
+    `<strong>${updated.length}</strong> rows will be updated (columns A–L only) · `+
+    `<strong>All image links in column M are preserved ✓</strong>`;
+
+  document.getElementById('arena-dropzone').style.display='none';
+  document.getElementById('update-preview').style.display='block';
+}
+
+function cancelUpdate(){
+  resetUpdatePanel();
+}
+
+async function confirmUpdate(){
+  if(!pendingUpdateRows||!pendingUpdateRows.arenaRows){return;}
+  const {newItems,updated}=pendingUpdateRows;
+  document.getElementById('update-preview').style.display='none';
+  document.getElementById('update-progress').style.display='block';
+
+  const total=updated.length+newItems.length;
+  let done=0;
+
+  function setProgress(n){
+    const pct=total?Math.round(n/total*100):100;
+    document.getElementById('update-progress-bar').style.width=pct+'%';
+    document.getElementById('update-progress-text').textContent=`Writing to Sheet... ${n}/${total}`;
+  }
+
+  try{
+    // 1. Update existing rows in batches
+    if(updated.length){
+      const batchSize=50;
+      for(let b=0;b<updated.length;b+=batchSize){
+        const batch=updated.slice(b,b+batchSize);
+        const data=[];
+        const ranges=[];
+        batch.forEach(({ar,idx})=>{
+          const sheetRow=HEADER_ROW+1+idx;
+          // Only update cols A-L (0-11), preserve M
+          const rowData=ar.slice(0,12).map(v=>String(v||'').trim());
+          data.push({range:`A${sheetRow}:L${sheetRow}`,values:[rowData]});
+        });
+        // Write batch
+        for(const item of data){
+          await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${item.range}?valueInputOption=RAW`,{
+            method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+            body:JSON.stringify({range:item.range,majorDimension:'ROWS',values:item.values})
+          });
+          // Update local allRows
+          const {ar,idx}=updated.find(u=>u.idx===updated[data.indexOf(item)]?.idx)||{};
+        }
+        done+=batch.length;
+        setProgress(done);
+        // Update local data
+        batch.forEach(({ar,idx})=>{
+          for(let c=0;c<12;c++) allRows[idx][c]=String(ar[c]||'').trim();
+        });
+      }
+    }
+
+    // 2. Append new items at the bottom
+    if(newItems.length){
+      const startRow=HEADER_ROW+1+allRows.length;
+      const values=newItems.map(ar=>{
+        const row=ar.slice(0,12).map(v=>String(v||'').trim());
+        while(row.length<13)row.push(''); // pad to col M
+        return row;
+      });
+      const range=`A${startRow}:M${startRow+newItems.length-1}`;
+      await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?valueInputOption=RAW`,{
+        method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+        body:JSON.stringify({range,majorDimension:'ROWS',values})
+      });
+      // Update local allRows
+      newItems.forEach(ar=>{
+        const row=ar.slice(0,12).map(v=>String(v||'').trim());
+        while(row.length<13)row.push('');
+        allRows.push(row);
+      });
+      done+=newItems.length;
+      setProgress(done);
+    }
+
+    setProgress(total);
+    buildLCFilters();
+    document.getElementById('sheet-st').textContent=allRows.length.toLocaleString()+' items loaded';
+    toast(`✓ Update complete — ${updated.length} updated, ${newItems.length} new items added`);
+    setTimeout(()=>{
+      document.getElementById('update-panel').style.display='none';
+      resetUpdatePanel();
+    },2000);
+
+  }catch(err){
+    console.error('Update error:',err);
+    toast('Error during update: '+err.message);
+    document.getElementById('update-progress').style.display='none';
+    document.getElementById('update-preview').style.display='block';
+  }
 }
 
 // ── SIGN OUT ──
