@@ -641,7 +641,7 @@ function cardHTML(p) {
        <div class="approved-badge"><svg viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg></div>`
     : `<div class="thumb-placeholder"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m3 15 5-5 4 4 3-3 5 5"/><circle cx="8.5" cy="8.5" r="1.5"/></svg></div>`;
 
-  const googleQ = encodeURIComponent(`${p.itemName || p.itemNumber} ${p.description}`.trim());
+  const googleQ = encodeURIComponent([p.itemName, p.description].filter(Boolean).join(' ').trim());
   const googleLink = `https://www.google.com/search?q=${googleQ}`;
 
   return `
@@ -710,11 +710,13 @@ async function toggleImages(itemNumber) {
 
   const part = allParts.find(p => p.itemNumber === itemNumber);
   if (!part) return;
-  const query = encodeURIComponent(`${part.itemName} ${part.description}`.trim() || part.itemNumber);
+
+  // Usar solo Item Name + Description — Item Number es interno y da malos resultados de imagen
+  const searchText = [part.itemName, part.description].filter(Boolean).join(' ').trim();
+  const query = encodeURIComponent(searchText);
 
   try {
     if (!CONFIG.CSE_KEY || CONFIG.CSE_KEY === 'TU_API_KEY') {
-      // Fallback: show Google Image Search links
       renderImgFallback(panel, itemNumber, part);
       return;
     }
@@ -754,7 +756,9 @@ function renderImgGrid(panel, itemNumber, items) {
 }
 
 function renderImgFallback(panel, itemNumber, part) {
-  const query = encodeURIComponent(`${part.itemName} ${part.description}`.trim() || part.itemNumber);
+  // Fallback también usa solo Item Name + Description
+  const searchText = [part.itemName, part.description].filter(Boolean).join(' ').trim();
+  const query = encodeURIComponent(searchText);
   panel.innerHTML = `
     <div class="img-panel-title"><span>Buscar imágenes externamente</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap;padding:4px 0">
