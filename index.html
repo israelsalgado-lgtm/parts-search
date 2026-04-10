@@ -18,15 +18,22 @@
         --amber-bg:#412402;--amber:#FAC775;}
     }
     *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);padding:1.25rem 1rem;min-height:100vh}
-    #app{max-width:860px;margin:0 auto}
+    html,body{width:100%;overflow-x:hidden}
+    body{
+      font-family:'DM Sans',sans-serif;
+      background:var(--bg);color:var(--text);
+      min-height:100vh;
+      padding:1rem 1rem 2rem;
+    }
+    @media(max-width:600px){body{padding:.6rem .6rem 2rem;}}
+    #app{width:100%;max-width:100%;margin:0;}
 
     /* Header */
-    .hdr{display:flex;align-items:center;gap:12px;padding-bottom:1.25rem;border-bottom:0.5px solid var(--border);margin-bottom:1.25rem}
+    .hdr{display:flex;align-items:center;gap:12px;padding-bottom:1rem;border-bottom:0.5px solid var(--border);margin-bottom:1rem;width:100%;}
     .logo{width:40px;height:40px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
     .logo svg{width:22px;height:22px;fill:#fff}
-    .hdr-text h1{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:600;letter-spacing:.5px;color:var(--text)}
-    .hdr-text p{font-size:12px;color:var(--muted);margin-top:1px}
+    .hdr-text h1{font-family:'Rajdhani',sans-serif;font-size:clamp(16px,4vw,22px);font-weight:600;letter-spacing:.5px;color:var(--text)}
+    .hdr-text p{font-size:clamp(10px,2.5vw,12px);color:var(--muted);margin-top:1px}
 
     /* Login */
     #login-screen{display:flex;align-items:center;justify-content:center;padding:3rem 1rem}
@@ -74,13 +81,6 @@
     .btn-sm{padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif}
     .btn-sm:hover{background:var(--accent-dk)}
 
-    /* Search */
-    .sbar{display:flex;gap:8px;margin-bottom:.4rem}
-    .sinput{flex:1;padding:12px 16px;border-radius:var(--rad-md);border:0.5px solid var(--border2);background:var(--bg);font-size:15px;color:var(--text);font-family:'DM Sans',sans-serif}
-    .sinput:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(29,158,117,.18)}
-    .sbtn{padding:12px 20px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:14px;font-weight:500;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:6px;transition:background .15s;white-space:nowrap}
-    .sbtn:hover{background:var(--accent-dk)}
-    .sbtn:active{transform:scale(.98)}
     .search-hint{font-size:11px;color:var(--muted);margin-bottom:.75rem;padding-left:2px}
 
     /* Lifecycle filters */
@@ -93,12 +93,15 @@
     .chip.on-amber{background:var(--amber-bg);color:var(--amber);border-color:#FAC775}
     .sttus{font-size:12px;color:var(--muted);margin-bottom:.75rem;min-height:18px}
 
-    /* Result cards */
-    .grid{display:grid;gap:10px}
-    .rcard{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad-lg);overflow:hidden;transition:border-color .15s}
+    /* Result cards — fluid width */
+    .grid{display:grid;gap:10px;width:100%;}
+    .rcard{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad-lg);overflow:hidden;transition:border-color .15s;width:100%;}
     .rcard:hover{border-color:var(--accent)}
-    .rcard-inner{display:grid;grid-template-columns:140px 1fr}
-    @media(max-width:520px){.rcard-inner{grid-template-columns:90px 1fr}}
+    /* image col adapts: 130px phone → 150px tablet → 170px desktop */
+    .rcard-inner{display:grid;grid-template-columns:130px 1fr;}
+    @media(max-width:400px){.rcard-inner{grid-template-columns:85px 1fr;}}
+    @media(min-width:700px){.rcard-inner{grid-template-columns:160px 1fr;}}
+    @media(min-width:1024px){.rcard-inner{grid-template-columns:180px 1fr;}}
 
     /* Image panel */
     .rimg-wrap{position:relative;background:var(--surface);overflow:hidden;min-height:130px;display:flex;align-items:center;justify-content:center;cursor:pointer}
@@ -166,20 +169,59 @@
     .iup-save:hover{background:var(--accent-dk)}
     .iup-save:disabled{opacity:.5;cursor:not-allowed}
 
-    /* ── FIX 5: Sticky search bar ── */
+    /* ── FIX 5 + RESPONSIVE: Sticky search bar full-width ── */
     .search-sticky{
       position:sticky;top:0;z-index:200;
       background:var(--bg);
-      padding:10px 0 8px;
+      /* bleed to full viewport width regardless of body padding */
+      margin-left:-1rem;
+      margin-right:-1rem;
+      padding:10px 1rem 8px;
       border-bottom:0.5px solid var(--border);
       margin-bottom:10px;
     }
-    /* small shadow so content scrolls behind it */
+    @media(max-width:600px){
+      .search-sticky{margin-left:-.6rem;margin-right:-.6rem;padding:8px .6rem 6px;}
+    }
     .search-sticky::after{
       content:'';display:block;height:6px;
       background:linear-gradient(to bottom,rgba(0,0,0,.06),transparent);
       pointer-events:none;margin-top:6px;
     }
+
+    /* Search bar: full width, responsive font + padding */
+    .sbar{display:flex;gap:6px;margin-bottom:.4rem;width:100%;}
+    .sinput{
+      flex:1;min-width:0;
+      padding:12px 14px;
+      border-radius:var(--rad-md);
+      border:0.5px solid var(--border2);
+      background:var(--bg);
+      font-size:15px;color:var(--text);
+      font-family:'DM Sans',sans-serif;
+      width:100%;
+      /* prevent iOS zoom on focus (needs >=16px or this meta trick) */
+      -webkit-text-size-adjust:100%;
+    }
+    .sinput:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(29,158,117,.18)}
+    /* on very small screens shrink input font slightly */
+    @media(max-width:400px){.sinput{font-size:14px;padding:11px 10px;}}
+
+    .sbtn{
+      padding:12px 16px;
+      background:var(--accent);color:#fff;border:none;
+      border-radius:var(--rad-md);cursor:pointer;
+      font-size:14px;font-weight:500;
+      font-family:'DM Sans',sans-serif;
+      display:flex;align-items:center;gap:5px;
+      transition:background .15s;white-space:nowrap;flex-shrink:0;
+    }
+    /* tablet: bigger tap target */
+    @media(min-width:600px){.sbtn{padding:12px 22px;}}
+    /* phone: hide button text, show only icon */
+    @media(max-width:420px){.sbtn .sbtn-label{display:none;}.sbtn{padding:12px 14px;}}
+    .sbtn:hover{background:var(--accent-dk)}
+    .sbtn:active{transform:scale(.98)}
 
     /* ── FIX 4: Image status badges ── */
     .img-status-badge{
@@ -307,7 +349,7 @@
           oninput="onInput()" onkeydown="if(event.key==='Enter')doSearch()"/>
         <button class="sbtn" onclick="doSearch()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          Search
+          <span class="sbtn-label">Search</span>
         </button>
       </div>
       <div class="search-hint">More words = more precise results · All words must match</div>
