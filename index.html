@@ -827,19 +827,45 @@ function checkSaveReady(i){
 }
 
 // ── DRIVE & SHEET ──
-async function uploadToDrive(fileOrBlob,filename){
-  const form=new FormData();
-  form.append('metadata',new Blob([JSON.stringify({name:filename,parents:[FOLDER_ID]})],{type:'application/json'}));
-  const file=fileOrBlob instanceof File?fileOrBlob:new File([fileOrBlob],filename,{type:fileOrBlob.type||'image/jpeg'});
-  form.append('file',file);
-  const up=await(await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{
-    method:'POST',headers:{Authorization:'Bearer '+token},body:form
-  })).json();
-  if(up.error)throw new Error(up.error.message);
-  await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
-    method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-    body:JSON.stringify({role:'reader',type:'anyone'})
+async function uploadToDrive(fileOrBlob, filename){
+  // Sanitize filename — remove any path separators or special chars
+  const safeName = filename.replace(/[\/\\:*?"<>|]/g,'_').slice(0,100) || 'image_'+Date.now()+'.jpg';
+  // Determine mime type
+  let mimeType = 'image/jpeg';
+  if(fileOrBlob instanceof File) mimeType = fileOrBlob.type || 'image/jpeg';
+  else if(fileOrBlob instanceof Blob) mimeType = fileOrBlob.type || 'image/jpeg';
+  if(!mimeType.startsWith('image/')) mimeType = 'image/jpeg';
+
+  const metadata = {name: safeName, parents: [FOLDER_ID]};
+
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], {type:'application/json'}));
+
+  // Always create a proper File object with correct name and type
+  let fileToUpload;
+  if(fileOrBlob instanceof File){
+    // Re-create with safe name
+    fileToUpload = new File([fileOrBlob], safeName, {type: mimeType});
+  } else {
+    fileToUpload = new File([fileOrBlob], safeName, {type: mimeType});
+  }
+  form.append('file', fileToUpload);
+
+  const resp = await fetch(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',
+    {method:'POST', headers:{Authorization:'Bearer '+token}, body:form}
+  );
+  const up = await resp.json();
+  if(up.error) throw new Error('Drive upload failed: '+up.error.message);
+  if(!up.id) throw new Error('Drive returned no file ID');
+
+  // Make file publicly readable
+  await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`, {
+    method:'POST',
+    headers:{Authorization:'Bearer '+token, 'Content-Type':'application/json'},
+    body:JSON.stringify({role:'reader', type:'anyone'})
   });
+
   return `https://drive.google.com/uc?id=${up.id}`;
 }
 
@@ -874,25 +900,46 @@ async function saveImage(i){
   if(savingEl)savingEl.style.display='inline';
   if(saveBtn)saveBtn.disabled=true;
   try{
-    const pn=(allRows[i][cNUM]||'item').replace(/[^\w-]/g,'_');
+    // Build a clean, safe filename from part number
+    const rawPN=allRows[i]?allRows[i][cNUM]||'':'';
+    const pn=(rawPN.replace(/[^\w-]/g,'_')||'part').slice(0,30);
+    const ts=Date.now();
     let driveLink='';
+
     if(st.mode==='upload'&&st.file){
       toast('Uploading image to Drive...');
-      const ext=st.file.name.split('.').pop()||'jpg';
-      driveLink=await uploadToDrive(st.file,`${pn}_${Date.now()}.${ext}`);
+      const ext=(st.file.name||'').split('.').pop().toLowerCase()||'jpg';
+      const validExt=['jpg','jpeg','png','webp','gif'].includes(ext)?ext:'jpg';
+      driveLink=await uploadToDrive(st.file, `${pn}_${ts}.${validExt}`);
+
     } else if(st.mode==='link'&&st.linkUrl){
-      toast('Saving image...');
+      toast('Saving image from link...');
       try{
-        const blob=await(await fetch(st.linkUrl)).blob();
-        driveLink=await uploadToDrive(blob,`${pn}_${Date.now()}.jpg`);
-      }catch{driveLink=st.linkUrl;}
+        const controller=new AbortController();
+        setTimeout(()=>controller.abort(),10000);
+        const blob=await(await fetch(st.linkUrl,{signal:controller.signal})).blob();
+        if(blob.size>0){
+          driveLink=await uploadToDrive(blob, `${pn}_${ts}.jpg`);
+        } else {
+          driveLink=st.linkUrl;
+        }
+      }catch{
+        // Can't fetch — save link directly to Sheet
+        driveLink=st.linkUrl;
+      }
     }
+
     if(!driveLink){toast('No image to save');return;}
-    await writeToSheet(i,driveLink);
+    await writeToSheet(i, driveLink);
     document.getElementById('uppanel-'+i).classList.remove('open');
     toast('✓ Image saved to Drive & Sheet');
-  }catch(err){console.error('saveImage:',err);toast('Error: '+err.message);}
-  finally{if(savingEl)savingEl.style.display='none';if(saveBtn)saveBtn.disabled=false;}
+  }catch(err){
+    console.error('saveImage error:',err);
+    toast('Error: '+err.message);
+  }finally{
+    if(savingEl)savingEl.style.display='none';
+    if(saveBtn)saveBtn.disabled=false;
+  }
 }
 
 // ── ADMIN MANAGEMENT ──
