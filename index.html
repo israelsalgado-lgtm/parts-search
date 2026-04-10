@@ -166,6 +166,33 @@
     .iup-save:hover{background:var(--accent-dk)}
     .iup-save:disabled{opacity:.5;cursor:not-allowed}
 
+    /* ── FIX 5: Sticky search bar ── */
+    .search-sticky{
+      position:sticky;top:0;z-index:200;
+      background:var(--bg);
+      padding:10px 0 8px;
+      border-bottom:0.5px solid var(--border);
+      margin-bottom:10px;
+    }
+    /* small shadow so content scrolls behind it */
+    .search-sticky::after{
+      content:'';display:block;height:6px;
+      background:linear-gradient(to bottom,rgba(0,0,0,.06),transparent);
+      pointer-events:none;margin-top:6px;
+    }
+
+    /* ── FIX 4: Image status badges ── */
+    .img-status-badge{
+      font-size:9px;font-weight:600;border-radius:3px;
+      padding:2px 6px;pointer-events:none;
+    }
+    .img-status-badge.approved{
+      background:var(--accent);color:#fff;
+    }
+    .img-status-badge.reference{
+      background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775;
+    }
+
     mark{background:#d4f0e4;border-radius:2px;padding:0 1px}
     .empty{padding:2rem;text-align:center;color:var(--muted);font-size:13px}
     .more{text-align:center;font-size:12px;color:var(--muted);padding:8px 0}
@@ -272,23 +299,25 @@
       </div>
     </div>
 
-    <div class="sbar">
-      <input class="sinput" id="q" type="text"
-        placeholder="Search by Part Number, name or description — e.g. valve 1/2, gate valve stainless..."
-        oninput="onInput()" onkeydown="if(event.key==='Enter')doSearch()"/>
-      <button class="sbtn" onclick="doSearch()">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-        Search
-      </button>
+    <!-- FIX 5: sticky wrapper -->
+    <div class="search-sticky">
+      <div class="sbar">
+        <input class="sinput" id="q" type="text"
+          placeholder="Search by Part Number, name or description — e.g. valve 1/2, gate valve stainless..."
+          oninput="onInput()" onkeydown="if(event.key==='Enter')doSearch()"/>
+        <button class="sbtn" onclick="doSearch()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          Search
+        </button>
+      </div>
+      <div class="search-hint">More words = more precise results · All words must match</div>
+      <div class="filter-section" style="margin-bottom:0">
+        <div class="filter-label">Lifecycle Status</div>
+        <div class="filters" id="lc-filters"></div>
+      </div>
     </div>
-    <div class="search-hint">More words = more precise results · All words must match</div>
 
-    <div class="filter-section">
-      <div class="filter-label">Lifecycle Status</div>
-      <div class="filters" id="lc-filters"></div>
-    </div>
-
-    <div class="sttus" id="sttus"></div>
+    <div class="sttus" id="sttus" style="margin-top:.6rem"></div>
     <div id="results"></div>
   </div>
 </div>
@@ -366,7 +395,8 @@ async function loadUser(){
   if(u.picture)av.innerHTML=`<img src="${u.picture}" alt="">`;
   else av.textContent=(u.name||'?')[0].toUpperCase();
   document.getElementById('uname').textContent=u.name||u.email||'User';
-  loadAdmins();
+  // FIX 2: load admin list from Sheet so it's cross-device
+  await loadAdminsFromSheet();
   isAdmin=admins.map(a=>a.toLowerCase()).includes(userEmail);
   if(isAdmin){
     document.getElementById('admin-badge').style.display='inline-block';
@@ -524,9 +554,16 @@ function cardHTML(r,i,terms){
   const rev=r[cREV]||'',cat=r[cCAT]||'',uom=r[cUOM]||'';
   const eff=r[cEFF]||'',proc=r[cPROC]||'',nsa=r[cNSA]||'',nsp=r[cNSP]||'';
   const savedImg=r[IMG_COL_IDX]||'';
-  const gl=`https://www.google.com/search?q=${encodeURIComponent(pn+' '+nm+' hardware part')}`;
-  const il=`https://www.google.com/search?q=${encodeURIComponent(pn+' '+nm+' hardware part -site:pinterest.com')}&tbm=isch`;
-  const approvedBadge=savedImg?`<span class="approved-badge show">✓ Image</span>`:`<span class="approved-badge" id="abadge-${i}"></span>`;
+
+  // FIX 1: build Google query from Name + key Description words only (no PN)
+  const descWords=(ds||'').trim().split(/\s+/).filter(w=>w.length>2).slice(0,5).join(' ');
+  const googleBase=nm.trim()+(descWords?' '+descWords:'');
+  const gl=`https://www.google.com/search?q=${encodeURIComponent(googleBase+' hardware part')}`;
+  const il=`https://www.google.com/search?q=${encodeURIComponent(googleBase+' -site:pinterest.com')}&tbm=isch`;
+  // FIX 4: always-visible status badge — green if approved, amber if reference only
+  const approvedBadge=savedImg
+    ?`<span class="img-status-badge approved">✓ Aprobada</span>`
+    :`<span class="img-status-badge reference" id="abadge-${i}">⚠ Referencia</span>`;
   const savedLinkEl=savedImg
     ?`<a class="saved-link show" href="${savedImg}" target="_blank"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-2 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg> View image</a>`
     :`<span id="slink-${i}"></span>`;
@@ -604,7 +641,7 @@ function cardHTML(r,i,terms){
           Open Google Images, find the correct image, right-click → "Copy image address", then paste it in the <strong>Paste link</strong> tab.
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px">
-          <a href="https://www.google.com/search?q=${encodeURIComponent(pn+' '+nm+' -site:pinterest.com -site:etsy.com')}&tbm=isch&tbs=isz:m,ic:specific,isc:white" target="_blank"
+          <a href="https://www.google.com/search?q=${encodeURIComponent((nm||pn)+' -site:pinterest.com -site:etsy.com')}&tbm=isch&tbs=isz:m,ic:specific,isc:white" target="_blank"
              style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#185FA5;color:#fff;border-radius:var(--rad-md);font-size:12px;font-weight:500;text-decoration:none">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             Google Images
@@ -632,13 +669,12 @@ function buildImgQuery(r){
 }
 
 function buildSearchQuery(r){
-  const pn=(r[cNUM]||'').trim();
+  // FIX 1: use Item Name + key Description words — NOT the part number
   const nm=(r[cNAME]||'').trim();
-  // Smart query: use part number + key words from name
-  // Remove model numbers/codes at end that are too specific
+  const ds=(r[cDESC]||'').trim().split(/\s+/).filter(w=>w.length>2).slice(0,4).join(' ');
   const cleanName=nm.replace(/[-_,]\s*[A-Z0-9]{4,}$/,'').trim();
   const words=cleanName.split(/\s+/).slice(0,6).join(' ');
-  return pn?`${pn} ${words}`:words;
+  return ds?`${words} ${ds}`:words;
 }
 
 function getBingImageUrls(r, count=5){
@@ -827,44 +863,56 @@ function checkSaveReady(i){
 }
 
 // ── DRIVE & SHEET ──
+// FIX 3: reliable multipart upload — bypasses FormData issues
 async function uploadToDrive(fileOrBlob, filename){
-  // Sanitize filename — remove any path separators or special chars
-  const safeName = filename.replace(/[\/\\:*?"<>|]/g,'_').slice(0,100) || 'image_'+Date.now()+'.jpg';
-  // Determine mime type
-  let mimeType = 'image/jpeg';
-  if(fileOrBlob instanceof File) mimeType = fileOrBlob.type || 'image/jpeg';
-  else if(fileOrBlob instanceof Blob) mimeType = fileOrBlob.type || 'image/jpeg';
-  if(!mimeType.startsWith('image/')) mimeType = 'image/jpeg';
+  const safeName=(filename||'image_'+Date.now()+'.jpg').replace(/[\/\\:*?"<>|]/g,'_').slice(0,100);
+  let mimeType='image/jpeg';
+  if(fileOrBlob&&fileOrBlob.type&&fileOrBlob.type.startsWith('image/')) mimeType=fileOrBlob.type;
 
-  const metadata = {name: safeName, parents: [FOLDER_ID]};
+  // Convert to ArrayBuffer
+  const arrayBuffer=await fileOrBlob.arrayBuffer();
 
-  const form = new FormData();
-  form.append('metadata', new Blob([JSON.stringify(metadata)], {type:'application/json'}));
+  const boundary='---SamaraUploadBoundary'+Date.now();
+  const metaJson=JSON.stringify({name:safeName,parents:[FOLDER_ID]});
 
-  // Always create a proper File object with correct name and type
-  let fileToUpload;
-  if(fileOrBlob instanceof File){
-    // Re-create with safe name
-    fileToUpload = new File([fileOrBlob], safeName, {type: mimeType});
-  } else {
-    fileToUpload = new File([fileOrBlob], safeName, {type: mimeType});
-  }
-  form.append('file', fileToUpload);
-
-  const resp = await fetch(
-    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',
-    {method:'POST', headers:{Authorization:'Bearer '+token}, body:form}
+  // Build multipart body manually (most reliable across browsers)
+  const enc=new TextEncoder();
+  const metaPart=enc.encode(
+    '--'+boundary+'\r\n'+
+    'Content-Type: application/json; charset=UTF-8\r\n\r\n'+
+    metaJson+'\r\n'+
+    '--'+boundary+'\r\n'+
+    'Content-Type: '+mimeType+'\r\n\r\n'
   );
-  const up = await resp.json();
-  if(up.error) throw new Error('Drive upload failed: '+up.error.message);
+  const closePart=enc.encode('\r\n--'+boundary+'--');
+
+  const body=new Uint8Array(metaPart.length+arrayBuffer.byteLength+closePart.length);
+  body.set(metaPart,0);
+  body.set(new Uint8Array(arrayBuffer),metaPart.length);
+  body.set(closePart,metaPart.length+arrayBuffer.byteLength);
+
+  const resp=await fetch(
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',
+    {method:'POST',
+     headers:{Authorization:'Bearer '+token,'Content-Type':'multipart/related; boundary='+boundary},
+     body:body}
+  );
+
+  if(!resp.ok){
+    const errBody=await resp.json().catch(()=>({}));
+    throw new Error('Drive upload failed ('+resp.status+'): '+(errBody.error?.message||'unknown error'));
+  }
+
+  const up=await resp.json();
   if(!up.id) throw new Error('Drive returned no file ID');
 
-  // Make file publicly readable
-  await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`, {
+  // Make the file publicly readable
+  const permResp=await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
     method:'POST',
-    headers:{Authorization:'Bearer '+token, 'Content-Type':'application/json'},
-    body:JSON.stringify({role:'reader', type:'anyone'})
+    headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+    body:JSON.stringify({role:'reader',type:'anyone'})
   });
+  if(!permResp.ok) console.warn('Could not make file public — it may not display for other users');
 
   return `https://drive.google.com/uc?id=${up.id}`;
 }
@@ -885,7 +933,7 @@ async function writeToSheet(i,link){
   const wrap=document.getElementById('imgwrap-'+i);
   if(wrap){const ph=wrap.querySelector('.img-ph');if(ph)ph.remove();}
   const badge=document.getElementById('abadge-'+i);
-  if(badge){badge.textContent='✓ Image';badge.classList.add('show');}
+  if(badge){badge.textContent='✓ Aprobada';badge.className='img-status-badge approved';}
   const slink=document.getElementById('slink-'+i);
   if(slink){slink.outerHTML=`<a class="saved-link show" href="${link}" target="_blank"><svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-2 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg> View image</a>`;}
   const addbtn=document.getElementById('addbtn-'+i);
@@ -943,11 +991,59 @@ async function saveImage(i){
 }
 
 // ── ADMIN MANAGEMENT ──
-function loadAdmins(){
+// FIX 2: admins stored in Sheet cell Z1 (above data) so all devices stay in sync
+const ADMIN_RANGE='Z1';
+
+function loadAdminsLocal(){
+  // Fallback: read from localStorage cache
   const s=localStorage.getItem('parts_admins');
   admins=s?JSON.parse(s):[...DEFAULT_ADMINS];
 }
-function saveAdmins(){localStorage.setItem('parts_admins',JSON.stringify(admins));}
+
+async function loadAdminsFromSheet(){
+  try{
+    const res=await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${ADMIN_RANGE}`,
+      {headers:{Authorization:'Bearer '+token}}
+    );
+    const d=await res.json();
+    if(d.values&&d.values[0]&&d.values[0][0]){
+      const parsed=JSON.parse(d.values[0][0]);
+      if(Array.isArray(parsed)&&parsed.length){
+        admins=parsed;
+        localStorage.setItem('parts_admins',JSON.stringify(admins));
+        return;
+      }
+    }
+  }catch(e){console.warn('Could not load admins from sheet:',e);}
+  // Fall back to local cache / defaults
+  loadAdminsLocal();
+}
+
+async function saveAdmins(){
+  localStorage.setItem('parts_admins',JSON.stringify(admins));
+  try{
+    await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${ADMIN_RANGE}?valueInputOption=RAW`,
+      {method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+       body:JSON.stringify({range:ADMIN_RANGE,majorDimension:'ROWS',values:[[JSON.stringify(admins)]]})}
+    );
+  }catch(e){console.warn('Could not save admins to sheet:',e);}
+}
+
+// Recompute isAdmin and refresh UI visibility after any admin list change
+function refreshAdminUI(){
+  isAdmin=admins.map(a=>a.toLowerCase()).includes(userEmail);
+  const badge=document.getElementById('admin-badge');
+  const bar=document.getElementById('admin-bar');
+  if(isAdmin){
+    if(badge)badge.style.display='inline-block';
+    if(bar)bar.style.display='flex';
+    // Show add-img buttons on already-rendered cards
+    document.querySelectorAll('.add-img-btn').forEach(b=>b.classList.add('admin-visible'));
+  }
+}
+
 function toggleAdminPanel(){
   const p=document.getElementById('admin-panel');
   p.style.display=p.style.display==='none'||!p.style.display?'block':'none';
@@ -961,16 +1057,24 @@ function renderAdminList(){
         :`<button class="admin-remove" onclick="removeAdmin(${i})">✕</button>`}
     </div>`).join('');
 }
-function addAdmin(){
+async function addAdmin(){
   const inp=document.getElementById('admin-input');
   const email=inp.value.trim().toLowerCase();
   if(!email||!email.includes('@')){toast('Enter a valid email');return;}
   if(admins.map(a=>a.toLowerCase()).includes(email)){toast('Already in the list');return;}
-  admins.push(email);saveAdmins();inp.value='';renderAdminList();toast('Admin added: '+email);
+  admins.push(email);
+  await saveAdmins();
+  refreshAdminUI();
+  inp.value='';renderAdminList();
+  toast('Admin added: '+email+' — saved to Sheet ✓');
 }
-function removeAdmin(i){
+async function removeAdmin(i){
   if(admins[i].toLowerCase()===userEmail){toast("You can't remove yourself");return;}
-  admins.splice(i,1);saveAdmins();renderAdminList();toast('Admin removed');
+  admins.splice(i,1);
+  await saveAdmins();
+  refreshAdminUI();
+  renderAdminList();
+  toast('Admin removed');
 }
 
 // ── ARENA UPDATE ──
