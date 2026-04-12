@@ -51,17 +51,17 @@
 
     /* User bar */
     .ubar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
-    .upill{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--surface);border-radius:100px;border:0.5px solid var(--border);font-size:13px;color:var(--muted)}
-    .uavatar{width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;overflow:hidden;flex-shrink:0}
+    .upill{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--surface);border-radius:100px;border:0.5px solid var(--border);font-size:14px;color:var(--muted)}
+    .uavatar{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:#fff;overflow:hidden;flex-shrink:0}
     .uavatar img{width:100%;height:100%;object-fit:cover}
-    .signout{font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;margin-left:4px;text-decoration:underline}
-    .admin-badge{font-size:10px;background:var(--accent-lt);color:#0F6E56;border-radius:100px;padding:2px 8px;border:0.5px solid #9FE1CB;margin-left:4px}
-    .sheet-st{font-size:11px;color:var(--muted)}
+    .signout{font-size:13px;color:var(--muted);background:none;border:none;cursor:pointer;margin-left:4px;text-decoration:underline}
+    .admin-badge{font-size:11px;background:var(--accent-lt);color:#0F6E56;border-radius:100px;padding:2px 8px;border:0.5px solid #9FE1CB;margin-left:4px}
+    .sheet-st{font-size:13px;color:var(--muted)}
 
     /* Admin bar */
     .admin-bar{display:flex;align-items:center;gap:8px;margin-bottom:1rem;padding:8px 12px;background:var(--accent-lt);border-radius:var(--rad-md);border:0.5px solid #9FE1CB}
-    .admin-bar-text{font-size:12px;color:#0F6E56;flex:1}
-    .admin-btn{font-size:11px;color:#0F6E56;background:none;border:0.5px solid #9FE1CB;border-radius:var(--rad-md);padding:4px 10px;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
+    .admin-bar-text{font-size:14px;color:#0F6E56;flex:1}
+    .admin-btn{font-size:13px;color:#0F6E56;background:none;border:0.5px solid #9FE1CB;border-radius:var(--rad-md);padding:4px 10px;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
     .admin-btn:hover{background:#9FE1CB}
     #admin-panel{display:none;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rad-lg);padding:1.25rem;margin-bottom:1rem}
     .admin-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:.75rem}
@@ -76,10 +76,21 @@
     .btn-sm{padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif}
     .btn-sm:hover{background:var(--accent-dk)}
 
-    /* Sticky search bar */
-    .search-sticky{position:sticky;top:0;z-index:200;background:var(--bg);margin-left:-1rem;margin-right:-1rem;padding:10px 1rem 8px;border-bottom:0.5px solid var(--border);margin-bottom:10px}
-    @media(max-width:600px){.search-sticky{margin-left:-.6rem;margin-right:-.6rem;padding:8px .6rem 6px}}
-    .search-sticky::after{content:'';display:block;height:6px;background:linear-gradient(to bottom,rgba(0,0,0,.06),transparent);pointer-events:none;margin-top:6px}
+    /* ── STICKY TOP BAR — toda la parte superior fija ── */
+    .top-sticky{
+      position:sticky;top:0;z-index:200;
+      background:var(--bg);
+      margin-left:-1rem;margin-right:-1rem;
+      padding:8px 1rem 0;
+      border-bottom:0.5px solid var(--border);
+      margin-bottom:10px;
+    }
+    @media(max-width:600px){.top-sticky{margin-left:-.6rem;margin-right:-.6rem;padding:6px .6rem 0}}
+    .top-sticky::after{content:'';display:block;height:6px;background:linear-gradient(to bottom,rgba(0,0,0,.07),transparent);pointer-events:none}
+
+    /* Search sticky (now inside top-sticky, no extra margin needed) */
+    .search-sticky{background:transparent;margin:0;padding:0;border:none}
+    .search-sticky::after{display:none}
 
     /* Search bar — full width responsive */
     .sbar{display:flex;gap:6px;margin-bottom:.4rem;width:100%}
@@ -91,22 +102,22 @@
     @media(max-width:420px){.sbtn .sbtn-label{display:none}.sbtn{padding:12px 14px}}
     .sbtn:hover{background:var(--accent-dk)}
     .sbtn:active{transform:scale(.98)}
-    .search-hint{font-size:11px;color:var(--muted);margin-bottom:.75rem;padding-left:2px}
+    .search-hint{font-size:13px;color:var(--muted);margin-bottom:.75rem;padding-left:2px}
 
-    /* Image status badges (FIX 4) */
-    .img-status-badge{font-size:9px;font-weight:600;border-radius:3px;padding:2px 6px;pointer-events:none}
+    /* Image status badges */
+    .img-status-badge{font-size:11px;font-weight:600;border-radius:3px;padding:2px 7px;pointer-events:none}
     .img-status-badge.approved{background:var(--accent);color:#fff}
     .img-status-badge.reference{background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775}
 
     /* Lifecycle filters */
     .filter-section{margin-bottom:.75rem}
-    .filter-label{font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+    .filter-label{font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
     .filters{display:flex;gap:6px;flex-wrap:wrap}
-    .chip{padding:5px 12px;border-radius:100px;font-size:12px;font-weight:500;border:0.5px solid var(--border);cursor:pointer;color:var(--muted);background:var(--bg);transition:all .12s;user-select:none}
+    .chip{padding:6px 14px;border-radius:100px;font-size:14px;font-weight:500;border:0.5px solid var(--border);cursor:pointer;color:var(--muted);background:var(--bg);transition:all .12s;user-select:none}
     .chip.on{background:var(--accent-lt);color:#0F6E56;border-color:#9FE1CB}
     .chip.on-blue{background:var(--blue-bg);color:var(--blue);border-color:#85B7EB}
     .chip.on-amber{background:var(--amber-bg);color:var(--amber);border-color:#FAC775}
-    .sttus{font-size:12px;color:var(--muted);margin-bottom:.75rem;min-height:18px}
+    .sttus{font-size:14px;color:var(--muted);margin-bottom:.75rem;min-height:20px}
 
     /* Result cards — fluid */
     .grid{display:grid;gap:10px;width:100%}
@@ -135,26 +146,26 @@
 
     /* Card body */
     .rbody{padding:10px 13px;display:flex;flex-direction:column;gap:3px;min-width:0}
-    .rpn{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;color:var(--accent);letter-spacing:.5px;line-height:1.2}
-    .rname{font-size:13px;font-weight:500;color:var(--text);line-height:1.3}
-    .rdesc{font-size:11px;color:var(--muted);line-height:1.4;margin-top:1px}
+    .rpn{font-family:'Rajdhani',sans-serif;font-size:19px;font-weight:600;color:var(--accent);letter-spacing:.5px;line-height:1.2}
+    .rname{font-size:15px;font-weight:500;color:var(--text);line-height:1.3}
+    .rdesc{font-size:13px;color:var(--muted);line-height:1.4;margin-top:1px}
     .rtags{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
-    .rtag{font-size:10px;padding:2px 7px;border-radius:100px;background:var(--surface);color:var(--muted);border:0.5px solid var(--border)}
+    .rtag{font-size:12px;padding:3px 9px;border-radius:100px;background:var(--surface);color:var(--muted);border:0.5px solid var(--border)}
     .rtag.lc-design{background:#E1F5EE;color:#085041;border-color:#9FE1CB}
     .rtag.lc-prod{background:var(--blue-bg);color:var(--blue);border-color:#85B7EB}
     .rtag.lc-other{background:var(--amber-bg);color:var(--amber);border-color:#FAC775}
 
     /* Extra fields grid */
-    .rfields{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;margin-top:4px}
-    .rfield{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .rfields{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;margin-top:5px}
+    .rfield{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .rfield span{color:var(--text);font-weight:500}
 
-    .rlinks{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;align-items:center}
-    .rlink{font-size:11px;color:var(--blue);text-decoration:none;padding:3px 8px;border-radius:4px;background:var(--blue-bg);display:flex;align-items:center;gap:4px}
+    .rlinks{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center}
+    .rlink{font-size:13px;color:var(--blue);text-decoration:none;padding:4px 10px;border-radius:4px;background:var(--blue-bg);display:flex;align-items:center;gap:4px}
     .rlink:hover{opacity:.8}
-    .saved-link{font-size:10px;color:var(--accent);padding:2px 7px;border-radius:3px;background:var(--accent-lt);border:0.5px solid #9FE1CB;text-decoration:none;display:none;align-items:center;gap:3px}
+    .saved-link{font-size:12px;color:var(--accent);padding:3px 8px;border-radius:3px;background:var(--accent-lt);border:0.5px solid #9FE1CB;text-decoration:none;display:none;align-items:center;gap:3px}
     .saved-link.show{display:inline-flex}
-    .add-img-btn{display:none;align-items:center;gap:5px;padding:3px 9px;border-radius:4px;font-size:11px;font-weight:500;background:var(--surface);color:var(--muted);border:0.5px solid var(--border);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s}
+    .add-img-btn{display:none;align-items:center;gap:5px;padding:4px 10px;border-radius:4px;font-size:12px;font-weight:500;background:var(--surface);color:var(--muted);border:0.5px solid var(--border);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s}
     .add-img-btn:hover{background:var(--accent-lt);color:#0F6E56;border-color:#9FE1CB}
     .add-img-btn.admin-visible{display:inline-flex}
 
@@ -182,6 +193,12 @@
     .iup-save{padding:7px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif}
     .iup-save:hover{background:var(--accent-dk)}
     .iup-save:disabled{opacity:.5;cursor:not-allowed}
+
+    /* Results limit selector */
+    .results-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:.75rem}
+    .results-limit{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--muted)}
+    .results-limit select{padding:3px 8px;border-radius:var(--rad-md);border:0.5px solid var(--border2);background:var(--bg);font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer}
+    .results-limit select:focus{outline:none;border-color:var(--accent)}
 
     mark{background:#d4f0e4;border-radius:2px;padding:0 1px}
     .empty{padding:2rem;text-align:center;color:var(--muted);font-size:13px}
@@ -228,30 +245,47 @@
 
   <!-- Main -->
   <div id="main-app">
-    <div class="ubar">
-      <div class="upill">
-        <div class="uavatar" id="uavatar">?</div>
-        <span id="uname">User</span>
-        <span class="admin-badge" id="admin-badge" style="display:none">Admin</span>
-        <button class="signout" onclick="signOut()">Sign out</button>
+
+    <!-- ── TOP STICKY: user bar + admin bar + search + filters ── -->
+    <div class="top-sticky">
+      <div class="ubar" style="margin-bottom:8px">
+        <div class="upill">
+          <div class="uavatar" id="uavatar">?</div>
+          <span id="uname">User</span>
+          <span class="admin-badge" id="admin-badge" style="display:none">Admin</span>
+          <button class="signout" onclick="signOut()">Sign out</button>
+        </div>
+        <div class="sheet-st" id="sheet-st"></div>
       </div>
-      <div class="sheet-st" id="sheet-st"></div>
-    </div>
 
-    <div class="admin-bar" id="admin-bar" style="display:none">
-      <div class="admin-bar-text">Admin mode — you can approve images, manage access, and update the inventory</div>
-      <button class="admin-btn" onclick="toggleAdminPanel()">Manage admins</button>
-      <button class="admin-btn" onclick="toggleUpdatePanel()" style="background:#0F6E56;color:#fff;border-color:#0F6E56">↑ Update from Arena</button>
-    </div>
+      <div class="admin-bar" id="admin-bar" style="display:none;margin-bottom:8px">
+        <div class="admin-bar-text">Admin mode — you can approve images, manage access, and update the inventory</div>
+        <button class="admin-btn" onclick="toggleAdminPanel()">Manage admins</button>
+        <button class="admin-btn" onclick="toggleUpdatePanel()" style="background:#0F6E56;color:#fff;border-color:#0F6E56">↑ Update from Arena</button>
+      </div>
 
-    <!-- Update Panel -->
+      <div class="sbar">
+        <input class="sinput" id="q" type="text"
+          placeholder="Search by Part Number, name or description..."
+          oninput="onInputClear()" onkeydown="if(event.key==='Enter')doSearch()"/>
+        <button class="sbtn" onclick="doSearch()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <span class="sbtn-label">Search</span>
+        </button>
+      </div>
+      <div class="search-hint">More words = more precise results · All words must match</div>
+      <div style="margin-bottom:8px">
+        <div class="filter-label">Lifecycle Status</div>
+        <div class="filters" id="lc-filters"></div>
+      </div>
+    </div><!-- end top-sticky -->
+
+    <!-- Panels (outside sticky so they push content down) -->
     <div id="update-panel" style="display:none;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad-lg);padding:1.25rem;margin-bottom:1rem">
       <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px">Update Inventory from Arena Report</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:1rem;line-height:1.5">
         Upload the <strong>.xls</strong> file exported from Arena. The app will match by Item Number and update all data fields while <strong>preserving all approved images</strong> in column M.
       </div>
-
-      <!-- File drop zone -->
       <div id="arena-dropzone" style="border:1.5px dashed var(--border2);border-radius:var(--rad-md);padding:20px;text-align:center;cursor:pointer;position:relative;transition:all .15s"
         ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='var(--accent-lt)'"
         ondragleave="this.style.borderColor='';this.style.background=''"
@@ -262,8 +296,6 @@
         <div style="font-size:13px;color:var(--text);font-weight:500">Drop Arena report here or <span style="color:var(--accent)">click to browse</span></div>
         <div style="font-size:11px;color:var(--muted);margin-top:4px">Supports .xls, .xlsx, .csv from Arena</div>
       </div>
-
-      <!-- Preview / confirm -->
       <div id="update-preview" style="display:none;margin-top:1rem">
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem" id="update-stats"></div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:8px" id="update-detail"></div>
@@ -289,24 +321,19 @@
       </div>
     </div>
 
-    <!-- sticky search wrapper -->
-    <div class="search-sticky">
-      <div class="sbar">
-        <input class="sinput" id="q" type="text"
-          placeholder="Search by Part Number, name or description..."
-          oninput="onInputClear()" onkeydown="if(event.key==='Enter')doSearch()"/>
-        <button class="sbtn" onclick="doSearch()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          <span class="sbtn-label">Search</span>
-        </button>
-      </div>
-      <div class="search-hint">More words = more precise results · All words must match</div>
-      <div class="filter-section" style="margin-bottom:0">
-        <div class="filter-label">Lifecycle Status</div>
-        <div class="filters" id="lc-filters"></div>
+    <!-- Results bar with status + limit selector -->
+    <div class="results-bar">
+      <div class="sttus" id="sttus" style="margin:0"></div>
+      <div class="results-limit">
+        Show:
+        <select id="result-limit" onchange="doSearch()">
+          <option value="60">Top 60</option>
+          <option value="100">Top 100</option>
+          <option value="200">Top 200</option>
+          <option value="0">All results</option>
+        </select>
       </div>
     </div>
-    <div class="sttus" id="sttus" style="margin-top:.5rem"></div>
     <div id="results"></div>
   </div>
 </div>
@@ -510,7 +537,11 @@ function doSearch(){
   res.sort((a,b)=>b.score-a.score);
   const n=res.length;
   document.getElementById('sttus').textContent=`${n.toLocaleString()} result${n!==1?'s':''} for "${raw}"`;
-  renderResults(res.slice(0,60),terms);
+  // FIX 3: read limit from selector (0 = all)
+  const limitEl=document.getElementById('result-limit');
+  const limit=limitEl?parseInt(limitEl.value)||0:60;
+  const sliced=limit>0?res.slice(0,limit):res;
+  renderResults(sliced,terms);
 }
 
 // ── RENDER ──
@@ -530,8 +561,11 @@ function lcClass(lc){
 function renderResults(res,terms){
   const c=document.getElementById('results');
   if(!res.length){c.innerHTML='<div class="empty">No results found — try fewer words or adjust the Lifecycle filter</div>';return;}
+  const limitEl=document.getElementById('result-limit');
+  const limit=limitEl?parseInt(limitEl.value)||0:60;
+  const hasMore=limit>0&&res.length>=limit;
   c.innerHTML='<div class="grid">'+res.map(({r,i})=>cardHTML(r,i,terms)).join('')+'</div>'
-    +(res.length>=60?'<div class="more">Showing top 60 results · Refine your search to see more</div>':'');
+    +(hasMore?'<div class="more">Showing top '+limit+' results · Change limit above to see more</div>':'');
 
   // FIX BUG: after DOM rebuild, restore previously loaded images from imgState
   res.forEach(({r,i})=>{
