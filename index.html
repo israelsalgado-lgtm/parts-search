@@ -240,9 +240,17 @@
     .more{text-align:center;font-size:12px;color:var(--muted);padding:8px 0}
 
     /* Category filter bar */
-    .cat-bar{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
-    .cat-bar::-webkit-scrollbar{display:none}
-    .chip.on-cat{background:#F0EAFB;color:#6E28C8;border-color:#C4A8F0}
+    .cat-bar{display:flex;gap:5px;flex-wrap:wrap;padding-bottom:2px;}
+    .cat-chip{
+      padding:4px 11px;border-radius:100px;font-size:11px;font-weight:500;
+      border:0.5px solid var(--border);cursor:pointer;color:var(--muted);
+      background:var(--bg);transition:all .12s;user-select:none;white-space:nowrap;
+      line-height:1.4;
+    }
+    .cat-chip.on-cat{background:#F0EAFB;color:#6E28C8;border-color:#C4A8F0}
+    @media(prefers-color-scheme:dark){
+      .cat-chip.on-cat{background:#2A1550;color:#C4A8F0;border-color:#6E28C8}
+    }
     .last-update-label{font-size:10px;color:var(--muted);display:none;margin-left:8px;font-style:italic}
 
     /* Reload admin button in admin panel */
@@ -366,7 +374,7 @@
           <span class="sbtn-label">Search</span>
         </button>
       </div>
-      <div class="search-hint">More words = more precise results · All words must match</div>
+      <div class="search-hint">Search by Part Number, name, or description · Separate multiple part numbers with commas: <em>302418, 302419, 200522</em></div>
       <div class="filter-section" style="margin-bottom:4px">
         <div class="filter-label">Lifecycle Status</div>
         <div class="filters" id="lc-filters"></div>
@@ -413,7 +421,7 @@ let cNUM=0,cNAME=1,cREV=2,cCAT=3,cLC=4,cUOM=5,cDESC=6,cEFF=7,cPROC=8,cNSA=9,cNSP
 
 let allRows=[],hdrs=[],token='',userEmail='',timer=null;
 let activeLCs=new Set(LC_DEFAULT),allLCs=[],admins=[...DEFAULT_ADMINS],isAdmin=false;
-let allCats=[],activeCat='';   // NEW: category filter
+let allCats=[],activeCats=new Set();   // NEW: multi-category filter
 const imgState={};
 const uploadState={};
 const recentSearches=[];
@@ -548,27 +556,8 @@ function saveRecentSearch(q){
 }
 
 function showEmptyState(){
-  document.getElementById('sttus').textContent='Search across '+allRows.length.toLocaleString()+' items';
-  const recent=recentSearches.slice(0,6);
-  document.getElementById('results').innerHTML=`
-    <div style="padding:2.5rem 1rem;text-align:center;color:var(--muted)">
-      <div style="width:52px;height:52px;border-radius:12px;background:var(--surface);border:0.5px solid var(--border);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-      </div>
-      <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:6px">Search for a part</div>
-      <div style="font-size:12px;line-height:1.7;margin-bottom:${recent.length?'1rem':'0'}">
-        Enter a Part Number, name or description<br>
-        Try: <span style="color:var(--accent);cursor:pointer" onclick="quickSearch('valve')">valve</span> · 
-        <span style="color:var(--accent);cursor:pointer" onclick="quickSearch('pump')">pump</span> · 
-        <span style="color:var(--accent);cursor:pointer" onclick="quickSearch('fitting')">fitting</span> · 
-        <span style="color:var(--accent);cursor:pointer" onclick="quickSearch('sensor')">sensor</span>
-      </div>
-      ${recent.length?`
-      <div style="font-size:11px;color:var(--muted);margin-bottom:8px">Recent searches</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center">
-        ${recent.map(s=>`<span onclick="quickSearch('${s}')" style="padding:4px 12px;border-radius:100px;background:var(--surface);border:0.5px solid var(--border);font-size:12px;cursor:pointer;color:var(--text)">${s}</span>`).join('')}
-      </div>`:''}
-    </div>`;
+  // After loading, just run doSearch with empty query to show all items
+  doSearch();
 }
 
 function smartScore(r,terms){
@@ -590,22 +579,61 @@ function smartScore(r,terms){
 }
 
 function doSearch(){
-  const raw=document.getElementById('q').value.trim().toLowerCase();
-  const terms=raw.split(/\s+/).filter(Boolean);
-  if(!terms.length&&!activeCat){showEmptyState();return;}
-  if(raw)saveRecentSearch(raw);
+  const raw=document.getElementById('q').value.trim();
+  const rawLo=raw.toLowerCase();
+
+  // Apply lifecycle + category filters
   let res=allRows.map((r,i)=>({r,i}));
-  if(activeLCs.size>0)res=res.filter(({r})=>activeLCs.has(r[cLC]||''));
-  if(activeCat)res=res.filter(({r})=>(r[cCAT]||'')==activeCat);
-  if(terms.length){
-    res=res.map(x=>({...x,score:smartScore(x.r,terms)})).filter(x=>x.score>0);
-    res.sort((a,b)=>b.score-a.score);
+  if(activeLCs.size>0)  res=res.filter(({r})=>activeLCs.has(r[cLC]||''));
+  if(activeCats.size>0) res=res.filter(({r})=>activeCats.has(r[cCAT]||''));
+
+  // ── EMPTY QUERY: show all filtered items ──
+  if(!raw){
+    const n=res.length;
+    const catLabel=activeCats.size?' · '+[...activeCats].join(', '):'';
+    document.getElementById('sttus').textContent=
+      `${n.toLocaleString()} item${n!==1?'s':''}${catLabel} — showing all`;
+    renderResults(res.slice(0,60),[]);
+    return;
   }
+
+  // ── COMMA-SEPARATED MULTI-SEARCH ──
+  const tokens=raw.split(',').map(t=>t.trim()).filter(Boolean);
+  if(tokens.length>1){
+    saveRecentSearch(raw);
+    const seen=new Set();
+    const matched=[];
+    tokens.forEach(tok=>{
+      const tl=tok.toLowerCase();
+      // Find best match per token: exact PN first, then contains
+      const hits=res.filter(({r,i})=>{
+        if(seen.has(i))return false;
+        const pn=(r[cNUM]||'').toLowerCase();
+        const nm=(r[cNAME]||'').toLowerCase();
+        const ds=(r[cDESC]||'').toLowerCase();
+        return pn===tl||pn.includes(tl)||nm.includes(tl)||ds.includes(tl);
+      });
+      hits.sort((a,b)=>{
+        const exact=(x)=>(x.r[cNUM]||'').toLowerCase()===tl;
+        return exact(b)-exact(a);
+      });
+      if(hits.length){seen.add(hits[0].i);matched.push(hits[0]);}
+    });
+    const n=matched.length;
+    document.getElementById('sttus').textContent=`${n} of ${tokens.length} parts found — comma search`;
+    renderResults(matched,tokens.map(t=>t.toLowerCase()));
+    return;
+  }
+
+  // ── SINGLE SMART SEARCH ──
+  saveRecentSearch(rawLo);
+  const terms=rawLo.split(/\s+/).filter(Boolean);
+  res=res.map(x=>({...x,score:smartScore(x.r,terms)})).filter(x=>x.score>0);
+  res.sort((a,b)=>b.score-a.score);
   const n=res.length;
-  const catLabel=activeCat?` · ${activeCat}`:'';
-  document.getElementById('sttus').textContent=terms.length
-    ?`${n.toLocaleString()} result${n!==1?'s':''} for "${raw}"${catLabel}`
-    :`${n.toLocaleString()} items in ${activeCat}`;
+  const catLabel=activeCats.size?' · '+[...activeCats].join(', '):'';
+  document.getElementById('sttus').textContent=
+    `${n.toLocaleString()} result${n!==1?'s':''} for "${raw}"${catLabel}`;
   renderResults(res.slice(0,60),terms);
 }
 
@@ -1416,7 +1444,7 @@ async function confirmUpdate(){
 // ── SIGN OUT ──
 function signOut(){
   google.accounts.id.disableAutoSelect();
-  token='';allRows=[];hdrs=[];userEmail='';isAdmin=false;
+  token='';allRows=[];hdrs=[];userEmail='';isAdmin=false;activeCats.clear();
   document.getElementById('lc-filters').innerHTML='';
   document.getElementById('cat-filters').innerHTML='';
   document.getElementById('results').innerHTML='';
@@ -1464,17 +1492,24 @@ function buildCatFilters(){
   el.innerHTML='';
   if(!allCats.length){document.getElementById('cat-section').style.display='none';return;}
   document.getElementById('cat-section').style.display='block';
-  // "All" chip
-  const all=document.createElement('span');
-  all.className='chip'+(activeCat===''?' on-cat':'');
-  all.textContent='All Categories';
-  all.onclick=()=>{activeCat='';buildCatFilters();doSearch();};
-  el.appendChild(all);
+  // "All" chip — clears selection
+  const allChip=document.createElement('span');
+  allChip.className='cat-chip'+(activeCats.size===0?' on-cat':'');
+  allChip.textContent='All';
+  allChip.title='Show all categories';
+  allChip.onclick=()=>{activeCats.clear();buildCatFilters();doSearch();};
+  el.appendChild(allChip);
   allCats.forEach(cat=>{
     const c=document.createElement('span');
-    c.className='chip'+(activeCat===cat?' on-cat':'');
+    c.className='cat-chip'+(activeCats.has(cat)?' on-cat':'');
     c.textContent=cat;
-    c.onclick=()=>{activeCat=(activeCat===cat?'':cat);buildCatFilters();doSearch();};
+    c.title=cat;
+    c.onclick=()=>{
+      if(activeCats.has(cat)) activeCats.delete(cat);
+      else activeCats.add(cat);
+      buildCatFilters();
+      doSearch();
+    };
     el.appendChild(c);
   });
 }
