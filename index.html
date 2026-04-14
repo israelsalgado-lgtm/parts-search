@@ -6,239 +6,250 @@
   <title>Samara — Parts Search</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600&family=DM+Sans:wght@400;500&display=swap');
-
-    /* ── BREAKPOINTS: 📱<480  📟480-768  🖥>768 ── */
     :root{
       --bg:#ffffff;--surface:#f5f5f3;--border:rgba(0,0,0,0.12);--border2:rgba(0,0,0,0.22);
       --text:#1a1a1a;--muted:#6b6b68;--accent:#1D9E75;--accent-dk:#0F6E56;
       --accent-lt:#E1F5EE;--blue-bg:#E6F1FB;--blue:#185FA5;--rad-md:8px;--rad-lg:12px;
       --amber-bg:#FAEEDA;--amber:#854F0B;--red:#E24B4A;
-      --f-xs:11px;--f-sm:12px;--f-md:13px;--f-lg:15px;--f-xl:18px;
     }
     @media(prefers-color-scheme:dark){
       :root{--bg:#1c1c1a;--surface:#252522;--border:rgba(255,255,255,0.12);--border2:rgba(255,255,255,0.22);
         --text:#e8e6dc;--muted:#9c9a90;--accent-lt:#04342C;--blue-bg:#042C53;--blue:#85B7EB;
         --amber-bg:#412402;--amber:#FAC775;}
     }
-    @media(max-width:479px){:root{--f-xs:10px;--f-sm:11px;--f-md:12px;--f-lg:13px;--f-xl:15px;}}
-    @media(min-width:769px){:root{--f-xs:11px;--f-sm:12px;--f-md:14px;--f-lg:15px;--f-xl:19px;}}
-
     *{box-sizing:border-box;margin:0;padding:0}
     html,body{width:100%;overflow-x:hidden}
-    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);padding:0 0 2rem;min-height:100vh}
-    #app{width:100%;max-width:100%;margin:0}
-    .page-pad{padding:0 .65rem}
-    @media(min-width:480px){.page-pad{padding:0 1rem}}
-    @media(min-width:769px){.page-pad{padding:0 1.25rem}}
+    body{
+      font-family:'DM Sans',sans-serif;
+      background:var(--bg);color:var(--text);
+      min-height:100vh;
+      padding:1rem 1rem 2rem;
+    }
+    @media(max-width:600px){body{padding:.6rem .6rem 2rem;}}
+    #app{width:100%;max-width:100%;margin:0;}
 
     /* Header */
-    .hdr{display:flex;align-items:center;gap:10px;padding:.65rem .65rem .65rem;border-bottom:0.5px solid var(--border)}
-    .logo{width:32px;height:32px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-    .logo svg{width:17px;height:17px;fill:#fff}
-    .hdr-text h1{font-family:'Rajdhani',sans-serif;font-size:clamp(14px,4vw,20px);font-weight:600;letter-spacing:.5px;color:var(--text)}
-    .hdr-text p{font-size:clamp(9px,2vw,12px);color:var(--muted);margin-top:1px}
+    .hdr{display:flex;align-items:center;gap:12px;padding-bottom:1rem;border-bottom:0.5px solid var(--border);margin-bottom:1rem;width:100%;}
+    .logo{width:40px;height:40px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .logo svg{width:22px;height:22px;fill:#fff}
+    .hdr-text h1{font-family:'Rajdhani',sans-serif;font-size:clamp(16px,4vw,22px);font-weight:600;letter-spacing:.5px;color:var(--text)}
+    .hdr-text p{font-size:clamp(10px,2.5vw,12px);color:var(--muted);margin-top:1px}
 
     /* Login */
-    #login-screen{display:flex;align-items:center;justify-content:center;padding:2rem .65rem}
-    .login-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rad-lg);padding:1.25rem;max-width:300px;width:100%;text-align:center}
-    .login-icon{width:44px;height:44px;border-radius:10px;background:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto .65rem}
-    .login-icon svg{width:22px;height:22px;fill:#fff}
-    .login-title{font-family:'Rajdhani',sans-serif;font-size:18px;font-weight:600;color:var(--text);margin-bottom:5px}
-    .login-sub{font-size:var(--f-md);color:var(--muted);margin-bottom:1rem;line-height:1.5}
-    .g-btn{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--rad-md);padding:11px 14px;cursor:pointer;font-size:var(--f-md);font-weight:500;color:var(--text);width:100%;font-family:'DM Sans',sans-serif;transition:background .15s}
+    #login-screen{display:flex;align-items:center;justify-content:center;padding:3rem 1rem}
+    .login-card{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rad-lg);padding:2rem;max-width:340px;width:100%;text-align:center}
+    .login-icon{width:52px;height:52px;border-radius:12px;background:var(--accent);display:flex;align-items:center;justify-content:center;margin:0 auto 1rem}
+    .login-icon svg{width:26px;height:26px;fill:#fff}
+    .login-title{font-family:'Rajdhani',sans-serif;font-size:20px;font-weight:600;color:var(--text);margin-bottom:6px}
+    .login-sub{font-size:13px;color:var(--muted);margin-bottom:1.5rem;line-height:1.5}
+    .g-btn{display:flex;align-items:center;justify-content:center;gap:10px;background:var(--bg);border:0.5px solid var(--border2);border-radius:var(--rad-md);padding:12px 20px;cursor:pointer;font-size:14px;font-weight:500;color:var(--text);width:100%;font-family:'DM Sans',sans-serif;transition:background .15s}
     .g-btn:hover{background:var(--surface)}
-    .login-note{font-size:var(--f-xs);color:var(--muted);margin-top:8px}
-    .err-msg{font-size:var(--f-sm);color:var(--red);margin-top:6px}
+    .login-note{font-size:11px;color:var(--muted);margin-top:10px}
+    .err-msg{font-size:12px;color:var(--red);margin-top:8px}
 
     /* Loading */
     #loading-screen{display:none;flex-direction:column;align-items:center;justify-content:center;padding:3rem;gap:12px}
-    .spinner{width:30px;height:30px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+    .spinner{width:32px;height:32px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
     @keyframes spin{to{transform:rotate(360deg)}}
-    .loading-text{font-size:var(--f-md);color:var(--muted)}
+    .loading-text{font-size:13px;color:var(--muted)}
     #main-app{display:none}
 
-    /* ── FIXED TOP BAR ── */
-    .top-fixed{position:fixed;top:0;left:0;right:0;width:100%;z-index:200;background:var(--bg);padding:5px .65rem 3px;border-bottom:1px solid var(--border);box-shadow:0 2px 8px rgba(0,0,0,.07)}
-    @media(min-width:480px){.top-fixed{padding:6px 1rem 4px}}
-    @media(min-width:769px){.top-fixed{padding:8px 1.25rem 5px}}
-    #top-spacer{width:100%}
-
     /* User bar */
-    .ubar{display:flex;align-items:center;justify-content:space-between;gap:5px;margin-bottom:4px;flex-wrap:nowrap}
-    .upill{display:flex;align-items:center;gap:5px;padding:3px 8px;background:var(--surface);border-radius:100px;border:0.5px solid var(--border);font-size:var(--f-md);color:var(--muted);min-width:0;flex:1}
-    .uavatar{width:20px;height:20px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:500;color:#fff;overflow:hidden;flex-shrink:0}
-    @media(min-width:480px){.uavatar{width:22px;height:22px;font-size:10px}}
+    .ubar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:1rem}
+    .upill{display:flex;align-items:center;gap:8px;padding:6px 12px;background:var(--surface);border-radius:100px;border:0.5px solid var(--border);font-size:13px;color:var(--muted)}
+    .uavatar{width:24px;height:24px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;color:#fff;overflow:hidden;flex-shrink:0}
     .uavatar img{width:100%;height:100%;object-fit:cover}
-    #uname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:90px}
-    @media(min-width:380px){#uname{max-width:130px}}
-    @media(min-width:480px){#uname{max-width:200px}}
-    @media(min-width:769px){#uname{max-width:none}}
-    .signout{font-size:var(--f-xs);color:var(--muted);background:none;border:none;cursor:pointer;margin-left:2px;text-decoration:underline;white-space:nowrap;flex-shrink:0}
-    .admin-badge{font-size:9px;background:var(--accent-lt);color:#0F6E56;border-radius:100px;padding:1px 5px;border:0.5px solid #9FE1CB;margin-left:2px;white-space:nowrap;flex-shrink:0}
-    @media(min-width:480px){.admin-badge{font-size:10px}}
-    .sheet-st{font-size:var(--f-xs);color:var(--muted);white-space:nowrap;flex-shrink:0}
+    .signout{font-size:11px;color:var(--muted);background:none;border:none;cursor:pointer;margin-left:4px;text-decoration:underline}
+    .admin-badge{font-size:10px;background:var(--accent-lt);color:#0F6E56;border-radius:100px;padding:2px 8px;border:0.5px solid #9FE1CB;margin-left:4px}
+    .sheet-st{font-size:11px;color:var(--muted)}
 
-    /* Admin bar — compact on mobile */
-    .admin-bar{display:flex;align-items:center;gap:5px;margin-bottom:4px;padding:4px 7px;background:var(--accent-lt);border-radius:var(--rad-md);border:0.5px solid #9FE1CB;flex-wrap:nowrap}
-    .admin-bar-text{font-size:var(--f-xs);color:#0F6E56;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .admin-bar-text .full{display:none}
-    .admin-bar-text .short{display:inline}
-    @media(min-width:480px){.admin-bar-text{font-size:var(--f-sm);white-space:normal;overflow:visible;text-overflow:unset}.admin-bar-text .full{display:inline}.admin-bar-text .short{display:none}}
-    @media(min-width:769px){.admin-bar-text{font-size:var(--f-md)}}
-    .admin-btn{font-size:var(--f-xs);color:#0F6E56;background:none;border:0.5px solid #9FE1CB;border-radius:var(--rad-md);padding:2px 6px;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;flex-shrink:0}
-    @media(min-width:480px){.admin-btn{font-size:var(--f-sm);padding:3px 9px}}
-    @media(min-width:769px){.admin-btn{font-size:var(--f-md);padding:4px 10px}}
+    /* Admin bar */
+    .admin-bar{display:flex;align-items:center;gap:8px;margin-bottom:1rem;padding:8px 12px;background:var(--accent-lt);border-radius:var(--rad-md);border:0.5px solid #9FE1CB}
+    .admin-bar-text{font-size:12px;color:#0F6E56;flex:1}
+    .admin-btn{font-size:11px;color:#0F6E56;background:none;border:0.5px solid #9FE1CB;border-radius:var(--rad-md);padding:4px 10px;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap}
     .admin-btn:hover{background:#9FE1CB}
-
-    /* Admin panel */
-    #admin-panel{display:none;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rad-lg);padding:.75rem;margin-bottom:.65rem}
-    .admin-title{font-size:var(--f-md);font-weight:500;color:var(--text);margin-bottom:.4rem}
-    .admin-list{display:flex;flex-direction:column;gap:5px;margin-bottom:.4rem}
-    .admin-email-row{display:flex;align-items:center;gap:6px;padding:4px 8px;background:var(--bg);border-radius:var(--rad-md);border:0.5px solid var(--border)}
-    .admin-email{font-size:var(--f-sm);color:var(--text);flex:1;font-family:monospace;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .admin-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 3px}
+    #admin-panel{display:none;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rad-lg);padding:1.25rem;margin-bottom:1rem}
+    .admin-title{font-size:14px;font-weight:500;color:var(--text);margin-bottom:.75rem}
+    .admin-list{display:flex;flex-direction:column;gap:6px;margin-bottom:.75rem}
+    .admin-email-row{display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--bg);border-radius:var(--rad-md);border:0.5px solid var(--border)}
+    .admin-email{font-size:12px;color:var(--text);flex:1;font-family:monospace}
+    .admin-remove{background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 4px}
     .admin-remove:hover{color:var(--red)}
-    .admin-add-row{display:flex;gap:6px}
-    .admin-input{flex:1;padding:6px 10px;border-radius:var(--rad-md);border:0.5px solid var(--border2);background:var(--bg);font-size:var(--f-md);color:var(--text);font-family:'DM Sans',sans-serif}
+    .admin-add-row{display:flex;gap:8px}
+    .admin-input{flex:1;padding:8px 12px;border-radius:var(--rad-md);border:0.5px solid var(--border2);background:var(--bg);font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif}
     .admin-input:focus{outline:none;border-color:var(--accent)}
-    .btn-sm{padding:6px 11px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:var(--f-sm);font-weight:500;font-family:'DM Sans',sans-serif}
+    .btn-sm{padding:8px 14px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif}
     .btn-sm:hover{background:var(--accent-dk)}
 
-    /* Search bar */
-    .sbar{display:flex;gap:4px;margin-bottom:3px;width:100%}
-    .sinput{flex:1;min-width:0;padding:7px 9px;border-radius:var(--rad-md);border:0.5px solid var(--border2);background:var(--bg);font-size:var(--f-lg);color:var(--text);font-family:'DM Sans',sans-serif;-webkit-appearance:none}
-    @media(min-width:480px){.sinput{padding:9px 12px}}
-    @media(min-width:769px){.sinput{padding:10px 14px}}
-    .sinput:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(29,158,117,.15)}
-    .sbtn{padding:7px 10px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:var(--f-md);font-weight:500;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:4px;transition:background .15s;white-space:nowrap;flex-shrink:0}
-    @media(min-width:480px){.sbtn{padding:9px 14px}}
-    @media(min-width:769px){.sbtn{padding:10px 18px}}
-    .sbtn-label{display:none}
-    @media(min-width:360px){.sbtn-label{display:inline}}
-    .sbtn:hover{background:var(--accent-dk)}
-    .sbtn:active{transform:scale(.98)}
-    .search-hint{font-size:var(--f-xs);color:var(--muted);margin-bottom:3px;padding-left:1px}
-
-    /* Image badges */
-    .img-status-badge{font-size:9px;font-weight:600;border-radius:3px;padding:2px 5px;pointer-events:none}
-    @media(min-width:480px){.img-status-badge{font-size:10px}}
-    @media(min-width:769px){.img-status-badge{font-size:11px;padding:2px 6px}}
-    .img-status-badge.approved{background:var(--accent);color:#fff}
-    .img-status-badge.reference{background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775}
+    .search-hint{font-size:11px;color:var(--muted);margin-bottom:.75rem;padding-left:2px}
 
     /* Lifecycle filters */
-    .filter-label{font-size:var(--f-xs);color:var(--muted);margin-bottom:3px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
-    .filters{display:flex;gap:4px;flex-wrap:wrap}
-    .chip{padding:3px 8px;border-radius:100px;font-size:var(--f-xs);font-weight:500;border:0.5px solid var(--border);cursor:pointer;color:var(--muted);background:var(--bg);transition:all .12s;user-select:none}
-    @media(min-width:480px){.chip{padding:4px 11px;font-size:var(--f-sm)}}
-    @media(min-width:769px){.chip{padding:5px 13px;font-size:var(--f-md)}}
+    .filter-section{margin-bottom:.75rem}
+    .filter-label{font-size:10px;color:var(--muted);margin-bottom:5px;font-weight:500;text-transform:uppercase;letter-spacing:.5px}
+    .filters{display:flex;gap:6px;flex-wrap:wrap}
+    .chip{padding:5px 12px;border-radius:100px;font-size:12px;font-weight:500;border:0.5px solid var(--border);cursor:pointer;color:var(--muted);background:var(--bg);transition:all .12s;user-select:none}
     .chip.on{background:var(--accent-lt);color:#0F6E56;border-color:#9FE1CB}
     .chip.on-blue{background:var(--blue-bg);color:var(--blue);border-color:#85B7EB}
     .chip.on-amber{background:var(--amber-bg);color:var(--amber);border-color:#FAC775}
-    .sttus{font-size:var(--f-md);color:var(--muted);margin-bottom:.4rem;min-height:16px}
+    .sttus{font-size:12px;color:var(--muted);margin-bottom:.75rem;min-height:18px}
 
-    /* Result cards */
-    .grid{display:grid;gap:6px;width:100%}
-    @media(min-width:480px){.grid{gap:9px}}
-    .rcard{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad-lg);overflow:hidden;transition:border-color .15s;width:100%}
+    /* Result cards — fluid width */
+    .grid{display:grid;gap:10px;width:100%;}
+    .rcard{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad-lg);overflow:hidden;transition:border-color .15s;width:100%;}
     .rcard:hover{border-color:var(--accent)}
-    .rcard-inner{display:grid;grid-template-columns:75px 1fr}
-    @media(min-width:360px){.rcard-inner{grid-template-columns:90px 1fr}}
-    @media(min-width:480px){.rcard-inner{grid-template-columns:120px 1fr}}
-    @media(min-width:769px){.rcard-inner{grid-template-columns:155px 1fr}}
-    @media(min-width:1024px){.rcard-inner{grid-template-columns:175px 1fr}}
+    /* image col adapts: 130px phone → 150px tablet → 170px desktop */
+    .rcard-inner{display:grid;grid-template-columns:130px 1fr;}
+    @media(max-width:400px){.rcard-inner{grid-template-columns:85px 1fr;}}
+    @media(min-width:700px){.rcard-inner{grid-template-columns:160px 1fr;}}
+    @media(min-width:1024px){.rcard-inner{grid-template-columns:180px 1fr;}}
 
     /* Image panel */
-    .rimg-wrap{position:relative;background:var(--surface);overflow:hidden;min-height:90px;display:flex;align-items:center;justify-content:center;cursor:pointer}
-    @media(min-width:480px){.rimg-wrap{min-height:115px}}
-    @media(min-width:769px){.rimg-wrap{min-height:135px}}
-    .rimg-wrap img.main-img{width:100%;height:100%;object-fit:contain;min-height:90px;background:var(--surface);padding:3px}
-    @media(min-width:480px){.rimg-wrap img.main-img{min-height:115px}}
-    @media(min-width:769px){.rimg-wrap img.main-img{min-height:135px;padding:4px}}
-    .img-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .2s;display:flex;flex-direction:column;justify-content:space-between;padding:4px}
+    .rimg-wrap{position:relative;background:var(--surface);overflow:hidden;min-height:130px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .rimg-wrap img.main-img{width:100%;height:100%;object-fit:cover;min-height:130px}
+    .img-overlay{position:absolute;inset:0;background:rgba(0,0,0,0);transition:background .2s;display:flex;flex-direction:column;justify-content:space-between;padding:5px}
     .rimg-wrap:hover .img-overlay{background:rgba(0,0,0,0.25)}
-    .img-top{display:flex;justify-content:space-between;align-items:flex-start;gap:3px}
+    .img-top{display:flex;justify-content:space-between;align-items:flex-start;gap:4px}
     .img-bottom{display:flex;justify-content:space-between;align-items:flex-end}
-    .approved-badge{background:var(--accent);color:#fff;font-size:9px;border-radius:3px;padding:2px 5px;display:none}
+    .approved-badge{background:var(--accent);color:#fff;font-size:9px;border-radius:3px;padding:2px 6px;display:none}
     .approved-badge.show{display:inline-block}
-    .img-counter{background:rgba(0,0,0,0.5);color:#fff;font-size:9px;border-radius:3px;padding:1px 4px}
-    .img-nav{display:flex;gap:2px;opacity:0;transition:opacity .2s}
+    .img-counter{background:rgba(0,0,0,0.5);color:#fff;font-size:9px;border-radius:3px;padding:1px 5px}
+    .img-nav{display:flex;gap:3px;opacity:0;transition:opacity .2s}
     .rimg-wrap:hover .img-nav{opacity:1}
-    .img-nav-btn{width:20px;height:20px;border-radius:4px;background:rgba(0,0,0,0.55);color:#fff;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
-    .quick-approve-btn{background:var(--accent);color:#fff;border:none;border-radius:4px;padding:2px 5px;font-size:9px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;opacity:0;transition:opacity .2s;white-space:nowrap}
+    .img-nav-btn{width:22px;height:22px;border-radius:4px;background:rgba(0,0,0,0.55);color:#fff;border:none;cursor:pointer;font-size:12px;display:flex;align-items:center;justify-content:center}
+    .quick-approve-btn{background:var(--accent);color:#fff;border:none;border-radius:4px;padding:3px 8px;font-size:10px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;opacity:0;transition:opacity .2s;white-space:nowrap}
     .rimg-wrap:hover .quick-approve-btn{opacity:1}
 
     /* Card body */
-    .rbody{padding:6px 8px;display:flex;flex-direction:column;gap:2px;min-width:0}
-    @media(min-width:480px){.rbody{padding:8px 11px;gap:2px}}
-    @media(min-width:769px){.rbody{padding:10px 13px;gap:3px}}
-    .rpn{font-family:'Rajdhani',sans-serif;font-size:var(--f-xl);font-weight:600;color:var(--accent);letter-spacing:.5px;line-height:1.2}
-    .rname{font-size:var(--f-lg);font-weight:500;color:var(--text);line-height:1.3}
-    .rdesc{font-size:var(--f-sm);color:var(--muted);line-height:1.4;margin-top:1px}
-    @media(max-width:359px){.rdesc{display:none}}
-    .rtags{display:flex;gap:3px;flex-wrap:wrap;margin-top:2px}
-    .rtag{font-size:var(--f-xs);padding:1px 6px;border-radius:100px;background:var(--surface);color:var(--muted);border:0.5px solid var(--border)}
-    @media(min-width:480px){.rtag{padding:2px 8px;font-size:var(--f-sm)}}
+    .rbody{padding:10px 13px;display:flex;flex-direction:column;gap:3px;min-width:0}
+    .rpn{font-family:'Rajdhani',sans-serif;font-size:15px;font-weight:600;color:var(--accent);letter-spacing:.5px;line-height:1.2}
+    .rname{font-size:13px;font-weight:500;color:var(--text);line-height:1.3}
+    .rdesc{font-size:11px;color:var(--muted);line-height:1.4;margin-top:1px}
+    .rtags{display:flex;gap:4px;flex-wrap:wrap;margin-top:3px}
+    .rtag{font-size:10px;padding:2px 7px;border-radius:100px;background:var(--surface);color:var(--muted);border:0.5px solid var(--border)}
     .rtag.lc-design{background:#E1F5EE;color:#085041;border-color:#9FE1CB}
     .rtag.lc-prod{background:var(--blue-bg);color:var(--blue);border-color:#85B7EB}
     .rtag.lc-other{background:var(--amber-bg);color:var(--amber);border-color:#FAC775}
-    .rfields{display:grid;grid-template-columns:1fr 1fr;gap:1px 5px;margin-top:2px}
-    @media(min-width:480px){.rfields{gap:2px 8px;margin-top:3px}}
-    @media(max-width:359px){.rfields{display:none}}
-    .rfield{font-size:var(--f-xs);color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    @media(min-width:480px){.rfield{font-size:var(--f-sm)}}
+
+    /* Extra fields grid */
+    .rfields{display:grid;grid-template-columns:1fr 1fr;gap:2px 8px;margin-top:4px}
+    .rfield{font-size:10px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .rfield span{color:var(--text);font-weight:500}
-    .rlinks{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap;align-items:center}
-    @media(min-width:480px){.rlinks{gap:5px;margin-top:4px}}
-    .rlink{font-size:var(--f-xs);color:var(--blue);text-decoration:none;padding:2px 6px;border-radius:4px;background:var(--blue-bg);display:flex;align-items:center;gap:3px}
-    @media(min-width:480px){.rlink{font-size:var(--f-sm);padding:3px 8px}}
-    @media(min-width:769px){.rlink{font-size:var(--f-md);padding:3px 9px}}
+
+    .rlinks{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;align-items:center}
+    .rlink{font-size:11px;color:var(--blue);text-decoration:none;padding:3px 8px;border-radius:4px;background:var(--blue-bg);display:flex;align-items:center;gap:4px}
     .rlink:hover{opacity:.8}
-    .saved-link{font-size:var(--f-xs);color:var(--accent);padding:2px 6px;border-radius:3px;background:var(--accent-lt);border:0.5px solid #9FE1CB;text-decoration:none;display:none;align-items:center;gap:3px}
-    @media(min-width:480px){.saved-link{font-size:var(--f-sm)}}
+    .saved-link{font-size:10px;color:var(--accent);padding:2px 7px;border-radius:3px;background:var(--accent-lt);border:0.5px solid #9FE1CB;text-decoration:none;display:none;align-items:center;gap:3px}
     .saved-link.show{display:inline-flex}
-    .add-img-btn{display:none;align-items:center;gap:3px;padding:2px 7px;border-radius:4px;font-size:var(--f-xs);font-weight:500;background:var(--surface);color:var(--muted);border:0.5px solid var(--border);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s}
-    @media(min-width:480px){.add-img-btn{font-size:var(--f-sm);padding:3px 9px}}
+    .add-img-btn{display:none;align-items:center;gap:5px;padding:3px 9px;border-radius:4px;font-size:11px;font-weight:500;background:var(--surface);color:var(--muted);border:0.5px solid var(--border);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .12s}
     .add-img-btn:hover{background:var(--accent-lt);color:#0F6E56;border-color:#9FE1CB}
     .add-img-btn.admin-visible{display:inline-flex}
 
     /* Upload panel */
-    .img-upload-panel{display:none;border-top:0.5px solid var(--border);padding:7px 8px;background:var(--surface)}
-    @media(min-width:480px){.img-upload-panel{padding:9px 12px}}
+    .img-upload-panel{display:none;border-top:0.5px solid var(--border);padding:10px 13px;background:var(--surface)}
     .img-upload-panel.open{display:block}
-    .iup-title{font-size:var(--f-sm);font-weight:500;color:var(--text);margin-bottom:5px}
-    .iup-tabs{display:flex;margin-bottom:7px;border:0.5px solid var(--border);border-radius:var(--rad-md);overflow:hidden}
-    .iup-tab{flex:1;padding:4px;font-size:var(--f-xs);font-weight:500;text-align:center;cursor:pointer;background:var(--bg);color:var(--muted);border:none;font-family:'DM Sans',sans-serif;transition:background .12s}
-    @media(min-width:480px){.iup-tab{padding:6px;font-size:var(--f-sm)}}
+    .iup-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:8px}
+    .iup-tabs{display:flex;margin-bottom:10px;border:0.5px solid var(--border);border-radius:var(--rad-md);overflow:hidden}
+    .iup-tab{flex:1;padding:6px;font-size:12px;font-weight:500;text-align:center;cursor:pointer;background:var(--bg);color:var(--muted);border:none;font-family:'DM Sans',sans-serif;transition:background .12s}
     .iup-tab.active{background:var(--accent);color:#fff}
     .iup-body-upload,.iup-body-link,.iup-body-google{display:none}
     .iup-body-upload.show,.iup-body-link.show,.iup-body-google.show{display:block}
-    .drop-zone{border:1.5px dashed var(--border2);border-radius:var(--rad-md);padding:12px;text-align:center;cursor:pointer;transition:border-color .15s;position:relative}
+    .drop-zone{border:1.5px dashed var(--border2);border-radius:var(--rad-md);padding:16px;text-align:center;cursor:pointer;transition:border-color .15s;position:relative}
     .drop-zone:hover,.drop-zone.drag{border-color:var(--accent);background:var(--accent-lt)}
     .drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
-    .drop-zone-text{font-size:var(--f-sm);color:var(--muted);line-height:1.5}
+    .drop-zone-text{font-size:12px;color:var(--muted);line-height:1.5}
     .drop-zone-text strong{color:var(--accent)}
-    .img-preview-thumb{width:100%;max-height:80px;object-fit:contain;border-radius:var(--rad-md);margin-top:6px;display:none;border:0.5px solid var(--border)}
-    .iup-link-row{display:flex;gap:6px;align-items:center}
-    .iup-link-input{flex:1;padding:6px 9px;border-radius:var(--rad-md);border:0.5px solid var(--border2);background:var(--bg);font-size:var(--f-sm);color:var(--text);font-family:'DM Sans',sans-serif}
+    .img-preview-thumb{width:100%;max-height:100px;object-fit:contain;border-radius:var(--rad-md);margin-top:8px;display:none;border:0.5px solid var(--border)}
+    .iup-link-row{display:flex;gap:8px;align-items:center}
+    .iup-link-input{flex:1;padding:8px 12px;border-radius:var(--rad-md);border:0.5px solid var(--border2);background:var(--bg);font-size:12px;color:var(--text);font-family:'DM Sans',sans-serif}
     .iup-link-input:focus{outline:none;border-color:var(--accent)}
-    .iup-link-preview{width:100%;max-height:75px;object-fit:contain;border-radius:var(--rad-md);margin-top:5px;display:none;border:0.5px solid var(--border)}
-    .iup-actions{display:flex;gap:5px;margin-top:7px;justify-content:flex-end;align-items:center}
-    .iup-cancel{padding:5px 10px;background:none;border:0.5px solid var(--border2);border-radius:var(--rad-md);cursor:pointer;font-size:var(--f-sm);color:var(--muted);font-family:'DM Sans',sans-serif}
-    .iup-save{padding:5px 12px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:var(--f-sm);font-weight:500;font-family:'DM Sans',sans-serif}
+    .iup-link-preview{width:100%;max-height:90px;object-fit:contain;border-radius:var(--rad-md);margin-top:8px;display:none;border:0.5px solid var(--border)}
+    .iup-actions{display:flex;gap:8px;margin-top:10px;justify-content:flex-end;align-items:center}
+    .iup-cancel{padding:7px 14px;background:none;border:0.5px solid var(--border2);border-radius:var(--rad-md);cursor:pointer;font-size:12px;color:var(--muted);font-family:'DM Sans',sans-serif}
+    .iup-save{padding:7px 16px;background:var(--accent);color:#fff;border:none;border-radius:var(--rad-md);cursor:pointer;font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif}
     .iup-save:hover{background:var(--accent-dk)}
     .iup-save:disabled{opacity:.5;cursor:not-allowed}
 
-    /* Results bar */
-    .results-bar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:4px;margin-bottom:.4rem}
-    .results-limit{display:flex;align-items:center;gap:4px;font-size:var(--f-sm);color:var(--muted)}
-    .results-limit select{padding:2px 5px;border-radius:var(--rad-md);border:0.5px solid var(--border2);background:var(--bg);font-size:var(--f-sm);color:var(--text);font-family:'DM Sans',sans-serif;cursor:pointer}
-    .results-limit select:focus{outline:none;border-color:var(--accent)}
+    /* ── FIX 5 + RESPONSIVE: Sticky search bar full-width ── */
+    .search-sticky{
+      position:sticky;top:0;z-index:200;
+      background:var(--bg);
+      /* bleed to full viewport width regardless of body padding */
+      margin-left:-1rem;
+      margin-right:-1rem;
+      padding:10px 1rem 8px;
+      border-bottom:0.5px solid var(--border);
+      margin-bottom:10px;
+    }
+    @media(max-width:600px){
+      .search-sticky{margin-left:-.6rem;margin-right:-.6rem;padding:8px .6rem 6px;}
+    }
+    .search-sticky::after{
+      content:'';display:block;height:6px;
+      background:linear-gradient(to bottom,rgba(0,0,0,.06),transparent);
+      pointer-events:none;margin-top:6px;
+    }
+
+    /* Search bar: full width, responsive font + padding */
+    .sbar{display:flex;gap:6px;margin-bottom:.4rem;width:100%;}
+    .sinput{
+      flex:1;min-width:0;
+      padding:12px 14px;
+      border-radius:var(--rad-md);
+      border:0.5px solid var(--border2);
+      background:var(--bg);
+      font-size:15px;color:var(--text);
+      font-family:'DM Sans',sans-serif;
+      width:100%;
+      /* prevent iOS zoom on focus (needs >=16px or this meta trick) */
+      -webkit-text-size-adjust:100%;
+    }
+    .sinput:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 2px rgba(29,158,117,.18)}
+    /* on very small screens shrink input font slightly */
+    @media(max-width:400px){.sinput{font-size:14px;padding:11px 10px;}}
+
+    .sbtn{
+      padding:12px 16px;
+      background:var(--accent);color:#fff;border:none;
+      border-radius:var(--rad-md);cursor:pointer;
+      font-size:14px;font-weight:500;
+      font-family:'DM Sans',sans-serif;
+      display:flex;align-items:center;gap:5px;
+      transition:background .15s;white-space:nowrap;flex-shrink:0;
+    }
+    /* tablet: bigger tap target */
+    @media(min-width:600px){.sbtn{padding:12px 22px;}}
+    /* phone: hide button text, show only icon */
+    @media(max-width:420px){.sbtn .sbtn-label{display:none;}.sbtn{padding:12px 14px;}}
+    .sbtn:hover{background:var(--accent-dk)}
+    .sbtn:active{transform:scale(.98)}
+
+    /* ── FIX 4: Image status badges ── */
+    .img-status-badge{
+      font-size:9px;font-weight:600;border-radius:3px;
+      padding:2px 6px;pointer-events:none;
+    }
+    .img-status-badge.approved{
+      background:var(--accent);color:#fff;
+    }
+    .img-status-badge.reference{
+      background:#FAEEDA;color:#854F0B;border:0.5px solid #FAC775;
+    }
 
     mark{background:#d4f0e4;border-radius:2px;padding:0 1px}
-    .empty{padding:1.5rem;text-align:center;color:var(--muted);font-size:var(--f-md)}
-    .more{text-align:center;font-size:var(--f-sm);color:var(--muted);padding:6px 0}
-    #toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:8px 16px;border-radius:100px;font-size:var(--f-sm);font-family:'DM Sans',sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap;max-width:90vw;text-align:center}
+    .empty{padding:2rem;text-align:center;color:var(--muted);font-size:13px}
+    .more{text-align:center;font-size:12px;color:var(--muted);padding:8px 0}
+
+    /* Category filter bar */
+    .cat-bar{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none;-webkit-overflow-scrolling:touch;}
+    .cat-bar::-webkit-scrollbar{display:none}
+    .chip.on-cat{background:#F0EAFB;color:#6E28C8;border-color:#C4A8F0}
+    .last-update-label{font-size:10px;color:var(--muted);display:none;margin-left:8px;font-style:italic}
+
+    /* Reload admin button in admin panel */
+    .btn-reload{padding:6px 12px;border:0.5px solid var(--border2);background:none;border-radius:var(--rad-md);cursor:pointer;font-size:11px;color:var(--muted);font-family:'DM Sans',sans-serif;}
+    .btn-reload:hover{background:var(--surface)}
+
+    #toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:#1a1a1a;color:#fff;padding:10px 20px;border-radius:100px;font-size:13px;font-family:'DM Sans',sans-serif;opacity:0;transition:opacity .3s;pointer-events:none;z-index:999;white-space:nowrap;max-width:90vw;text-align:center}
     #toast.show{opacity:1}
     #img-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:1000;align-items:center;justify-content:center;padding:1rem}
     #img-modal.open{display:flex}
@@ -248,7 +259,7 @@
 </head>
 <body>
 <div id="app">
-  <div class="hdr page-pad" style="padding-top:1rem">
+  <div class="hdr">
     <div class="logo"><svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2zm-7 3a1 1 0 110 2 1 1 0 010-2zm-4 11H6v-2h2v2zm4 0h-2v-2h2v2zm0-4H8v-2h4v2zm4 4h-2v-2h2v2zm0-4h-2v-2h2v2z"/></svg></div>
     <div class="hdr-text">
       <h1>SAMARA — Parts Search</h1>
@@ -279,54 +290,30 @@
 
   <!-- Main -->
   <div id="main-app">
-
-    <!-- ── FIXED TOP BAR: user + admin + search + filters ── -->
-    <div class="top-fixed" id="top-fixed">
-      <div class="ubar" style="margin-bottom:6px">
-        <div class="upill">
-          <div class="uavatar" id="uavatar">?</div>
-          <span id="uname">User</span>
-          <span class="admin-badge" id="admin-badge" style="display:none">Admin</span>
-          <button class="signout" onclick="signOut()">Sign out</button>
-        </div>
-        <div class="sheet-st" id="sheet-st"></div>
+    <div class="ubar">
+      <div class="upill">
+        <div class="uavatar" id="uavatar">?</div>
+        <span id="uname">User</span>
+        <span class="admin-badge" id="admin-badge" style="display:none">Admin</span>
+        <button class="signout" onclick="signOut()">Sign out</button>
       </div>
-      <div class="admin-bar" id="admin-bar" style="display:none;margin-bottom:4px">
-        <div class="admin-bar-text">
-          <span class="short">⚙ Admin</span>
-          <span class="full">Admin mode — you can approve images, manage access, and update the inventory</span>
-        </div>
-        <button class="admin-btn" onclick="toggleAdminPanel()">Admins</button>
-        <button class="admin-btn" onclick="toggleUpdatePanel()" style="background:#0F6E56;color:#fff;border-color:#0F6E56">↑ Arena</button>
-      </div>
-      <div class="sbar">
-        <input class="sinput" id="q" type="text"
-          placeholder="Search by Part Number, name or description..."
-          oninput="onInputClear()" onkeydown="if(event.key==='Enter')doSearch()"/>
-        <button class="sbtn" onclick="doSearch()">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
-          <span class="sbtn-label">Search</span>
-        </button>
-      </div>
-      <div class="search-hint">More words = more precise results · All words must match</div>
-      <div style="padding-bottom:6px">
-        <div class="filter-label">Lifecycle Status</div>
-        <div class="filters" id="lc-filters"></div>
-      </div>
-    </div><!-- end top-fixed -->
+      <div class="sheet-st" id="sheet-st"></div>
+    </div>
 
-    <!-- Spacer: height set dynamically by JS to match fixed bar height -->
-    <div id="top-spacer"></div>
+    <div class="admin-bar" id="admin-bar" style="display:none">
+      <div class="admin-bar-text">Admin mode — you can approve images, manage access, and update the inventory</div>
+      <button class="admin-btn" onclick="toggleAdminPanel()">Manage admins</button>
+      <button class="admin-btn" onclick="toggleUpdatePanel()" style="background:#0F6E56;color:#fff;border-color:#0F6E56">↑ Update from Arena</button>
+    </div>
 
-    <!-- page-pad wraps all scrollable content below the sticky bar -->
-    <div class="page-pad">
-
-    <!-- Panels -->
+    <!-- Update Panel -->
     <div id="update-panel" style="display:none;background:var(--bg);border:0.5px solid var(--border);border-radius:var(--rad-lg);padding:1.25rem;margin-bottom:1rem">
       <div style="font-size:14px;font-weight:500;color:var(--text);margin-bottom:4px">Update Inventory from Arena Report</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:1rem;line-height:1.5">
         Upload the <strong>.xls</strong> file exported from Arena. The app will match by Item Number and update all data fields while <strong>preserving all approved images</strong> in column M.
       </div>
+
+      <!-- File drop zone -->
       <div id="arena-dropzone" style="border:1.5px dashed var(--border2);border-radius:var(--rad-md);padding:20px;text-align:center;cursor:pointer;position:relative;transition:all .15s"
         ondragover="event.preventDefault();this.style.borderColor='var(--accent)';this.style.background='var(--accent-lt)'"
         ondragleave="this.style.borderColor='';this.style.background=''"
@@ -337,6 +324,8 @@
         <div style="font-size:13px;color:var(--text);font-weight:500">Drop Arena report here or <span style="color:var(--accent)">click to browse</span></div>
         <div style="font-size:11px;color:var(--muted);margin-top:4px">Supports .xls, .xlsx, .csv from Arena</div>
       </div>
+
+      <!-- Preview / confirm -->
       <div id="update-preview" style="display:none;margin-top:1rem">
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:1rem" id="update-stats"></div>
         <div style="font-size:12px;color:var(--muted);margin-bottom:8px" id="update-detail"></div>
@@ -360,26 +349,39 @@
         <input class="admin-input" id="admin-input" type="email" placeholder="email@samara.com"/>
         <button class="btn-sm" onclick="addAdmin()">Add</button>
       </div>
-    </div>
-
-    <!-- Results bar with status + limit selector -->
-    <div class="results-bar">
-      <div class="sttus" id="sttus" style="margin:0"></div>
-      <div class="results-limit">
-        Show:
-        <select id="result-limit" onchange="doSearch()">
-          <option value="60">Top 60</option>
-          <option value="100">Top 100</option>
-          <option value="200">Top 200</option>
-          <option value="0">All results</option>
-        </select>
+      <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+        <button class="btn-reload" onclick="reloadAdminList()">↺ Reload admin list from Sheet</button>
+        <span style="font-size:10px;color:var(--muted)">If a new admin was added on another device, click to sync</span>
       </div>
     </div>
-    <div id="results"></div>
 
-    </div><!-- end page-pad -->
-  </div><!-- end main-app -->
-</div><!-- end app -->
+    <!-- FIX 5: sticky wrapper -->
+    <div class="search-sticky">
+      <div class="sbar">
+        <input class="sinput" id="q" type="text"
+          placeholder="Search by Part Number, name or description — e.g. valve 1/2, gate valve stainless..."
+          oninput="onInput()" onkeydown="if(event.key==='Enter')doSearch()"/>
+        <button class="sbtn" onclick="doSearch()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <span class="sbtn-label">Search</span>
+        </button>
+      </div>
+      <div class="search-hint">More words = more precise results · All words must match</div>
+      <div class="filter-section" style="margin-bottom:4px">
+        <div class="filter-label">Lifecycle Status</div>
+        <div class="filters" id="lc-filters"></div>
+      </div>
+      <!-- NEW: Category filter bar -->
+      <div class="filter-section" id="cat-section" style="display:none;margin-bottom:0">
+        <div class="filter-label">Category <span class="last-update-label" id="last-update-label"></span></div>
+        <div class="cat-bar" id="cat-filters"></div>
+      </div>
+    </div>
+
+    <div class="sttus" id="sttus" style="margin-top:.6rem"></div>
+    <div id="results"></div>
+  </div>
+</div>
 
 <div id="toast"></div>
 <div id="img-modal" onclick="closeModal(event)">
@@ -399,27 +401,24 @@ const LC_DEFAULT  = new Set(['Design','In Production']);
 const LC_COLORS   = {'Design':'on','In Production':'on-blue'};
 const DEFAULT_ADMINS = ['israel.salgado@samara.com'];
 
+// FIX 1: admin cell stored in row 1 col A of first tab — reliable, always exists
+// Z1 stores the admin JSON, Z2 stores the last Arena upload date
+// We will detect the actual first sheet tab name from metadata to be safe
+const ADMIN_CELL  = 'Z1';
+const LUPDATE_CELL= 'Z2';
+let sheetTabName  = '';  // set after loading metadata
+
 // Column indices — detected from headers
 let cNUM=0,cNAME=1,cREV=2,cCAT=3,cLC=4,cUOM=5,cDESC=6,cEFF=7,cPROC=8,cNSA=9,cNSP=10;
 
 let allRows=[],hdrs=[],token='',userEmail='',timer=null;
 let activeLCs=new Set(LC_DEFAULT),allLCs=[],admins=[...DEFAULT_ADMINS],isAdmin=false;
+let allCats=[],activeCat='';   // NEW: category filter
 const imgState={};
 const uploadState={};
 const recentSearches=[];
 
 // ── AUTH ──
-// ── FIXED BAR SPACER ──
-// Keeps the spacer div the same height as the fixed top bar
-// so content never hides underneath it. Works in Google Sites iframes.
-function setSpacerHeight(){
-  const bar=document.getElementById('top-fixed');
-  const spacer=document.getElementById('top-spacer');
-  if(bar&&spacer) spacer.style.height=bar.offsetHeight+'px';
-}
-// Run on load, resize, and whenever admin bar visibility changes
-window.addEventListener('resize', setSpacerHeight);
-
 function show(id){
   ['login-screen','loading-screen','main-app'].forEach(s=>{
     const el=document.getElementById(s);
@@ -465,18 +464,28 @@ async function loadUser(){
   if(u.picture)av.innerHTML=`<img src="${u.picture}" alt="">`;
   else av.textContent=(u.name||'?')[0].toUpperCase();
   document.getElementById('uname').textContent=u.name||u.email||'User';
+  // FIX 2: load admin list from Sheet so it's cross-device
   await loadAdminsFromSheet();
   isAdmin=admins.map(a=>a.toLowerCase()).includes(userEmail);
   if(isAdmin){
     document.getElementById('admin-badge').style.display='inline-block';
     document.getElementById('admin-bar').style.display='flex';
-    setTimeout(setSpacerHeight, 30);
   }
 }
 
 async function loadSheet(){
   setLoading('Loading inventory...');
-  const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/A${HEADER_ROW}:Z5000`,{headers:{Authorization:'Bearer '+token}});
+  // Fetch spreadsheet metadata first to get the correct tab name for admin cell
+  try{
+    const metaRes=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}?fields=sheets.properties`,{headers:{Authorization:'Bearer '+token}});
+    const meta=await metaRes.json();
+    if(meta.sheets&&meta.sheets[0]){
+      sheetTabName=meta.sheets[0].properties.title||'';
+    }
+  }catch(e){console.warn('Could not fetch sheet metadata:',e);}
+
+  const range=sheetTabName?`'${sheetTabName}'!A${HEADER_ROW}:Z5000`:`A${HEADER_ROW}:Z5000`;
+  const res=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(range)}`,{headers:{Authorization:'Bearer '+token}});
   const d=await res.json();
   if(d.error){show('login-screen');document.getElementById('login-err').textContent='Error: '+d.error.message;return;}
   const all=d.values||[];
@@ -485,10 +494,11 @@ async function loadSheet(){
   allRows=all.slice(1).filter(r=>r&&r.some(c=>c));
   detectCols();
   buildLCFilters();
+  buildCatFilters();
+  await loadLastUpdateDate();
   document.getElementById('sheet-st').textContent=allRows.length.toLocaleString()+' items loaded';
   showEmptyState();
   show('main-app');
-  setTimeout(setSpacerHeight, 50); // measure after render
 }
 
 function detectCols(){
@@ -529,10 +539,7 @@ function buildLCFilters(){
 }
 
 // ── SEARCH ──
-// FIX BUG: no auto-search while typing — only on Enter or button
-function onInputClear(){
-  if(!document.getElementById('q').value.trim()) showEmptyState();
-}
+function onInput(){clearTimeout(timer);timer=setTimeout(doSearch,280);}
 function quickSearch(term){document.getElementById('q').value=term;doSearch();}
 function saveRecentSearch(q){
   if(!q||recentSearches.includes(q))return;
@@ -585,19 +592,21 @@ function smartScore(r,terms){
 function doSearch(){
   const raw=document.getElementById('q').value.trim().toLowerCase();
   const terms=raw.split(/\s+/).filter(Boolean);
-  if(!terms.length){showEmptyState();return;}
-  saveRecentSearch(raw);
+  if(!terms.length&&!activeCat){showEmptyState();return;}
+  if(raw)saveRecentSearch(raw);
   let res=allRows.map((r,i)=>({r,i}));
   if(activeLCs.size>0)res=res.filter(({r})=>activeLCs.has(r[cLC]||''));
-  res=res.map(x=>({...x,score:smartScore(x.r,terms)})).filter(x=>x.score>0);
-  res.sort((a,b)=>b.score-a.score);
+  if(activeCat)res=res.filter(({r})=>(r[cCAT]||'')==activeCat);
+  if(terms.length){
+    res=res.map(x=>({...x,score:smartScore(x.r,terms)})).filter(x=>x.score>0);
+    res.sort((a,b)=>b.score-a.score);
+  }
   const n=res.length;
-  document.getElementById('sttus').textContent=`${n.toLocaleString()} result${n!==1?'s':''} for "${raw}"`;
-  // FIX 3: read limit from selector (0 = all)
-  const limitEl=document.getElementById('result-limit');
-  const limit=limitEl?parseInt(limitEl.value)||0:60;
-  const sliced=limit>0?res.slice(0,limit):res;
-  renderResults(sliced,terms);
+  const catLabel=activeCat?` · ${activeCat}`:'';
+  document.getElementById('sttus').textContent=terms.length
+    ?`${n.toLocaleString()} result${n!==1?'s':''} for "${raw}"${catLabel}`
+    :`${n.toLocaleString()} items in ${activeCat}`;
+  renderResults(res.slice(0,60),terms);
 }
 
 // ── RENDER ──
@@ -617,32 +626,9 @@ function lcClass(lc){
 function renderResults(res,terms){
   const c=document.getElementById('results');
   if(!res.length){c.innerHTML='<div class="empty">No results found — try fewer words or adjust the Lifecycle filter</div>';return;}
-  const limitEl=document.getElementById('result-limit');
-  const limit=limitEl?parseInt(limitEl.value)||0:60;
-  const hasMore=limit>0&&res.length>=limit;
   c.innerHTML='<div class="grid">'+res.map(({r,i})=>cardHTML(r,i,terms)).join('')+'</div>'
-    +(hasMore?'<div class="more">Showing top '+limit+' results · Change limit above to see more</div>':'');
-
-  // FIX BUG: after DOM rebuild, restore previously loaded images from imgState
-  res.forEach(({r,i})=>{
-    const st=imgState[i];
-    if(st&&st.urls.length){
-      // Already loaded before — restore image directly, skip re-init
-      const el=document.getElementById('img-'+i);
-      if(el){el.src=st.urls[st.current];el.style.display='block';}
-      const wrap=document.getElementById('imgwrap-'+i);
-      if(wrap){const ph=wrap.querySelector('.img-ph');if(ph)ph.remove();}
-      updateCounter(i);
-      // Restore badge if approved
-      const saved=allRows[i]?allRows[i][IMG_COL_IDX]||''  :'';
-      const badge=document.getElementById('abadge-'+i);
-      if(badge&&saved){badge.textContent='✓ Aprobada';badge.className='img-status-badge approved';}
-      const qb=document.getElementById('qabtn-'+i);
-      if(qb&&saved)qb.style.display='none';
-    } else {
-      initImgState(r,i);
-    }
-  });
+    +(res.length>=60?'<div class="more">Showing top 60 results · Refine your search to see more</div>':'');
+  res.forEach(({r,i})=>initImgState(r,i));
 }
 
 function fld(label,val){
@@ -655,12 +641,13 @@ function cardHTML(r,i,terms){
   const rev=r[cREV]||'',cat=r[cCAT]||'',uom=r[cUOM]||'';
   const eff=r[cEFF]||'',proc=r[cPROC]||'',nsa=r[cNSA]||'',nsp=r[cNSP]||'';
   const savedImg=r[IMG_COL_IDX]||'';
-  // FIX 1: query uses Name + Description only — no PN
+
+  // FIX 1: build Google query from Name + key Description words only (no PN)
   const descWords=(ds||'').trim().split(/\s+/).filter(w=>w.length>2).slice(0,5).join(' ');
   const googleBase=nm.trim()+(descWords?' '+descWords:'');
   const gl=`https://www.google.com/search?q=${encodeURIComponent(googleBase+' hardware part')}`;
   const il=`https://www.google.com/search?q=${encodeURIComponent(googleBase+' -site:pinterest.com')}&tbm=isch`;
-  // FIX 4: always-visible badge — green approved / amber reference
+  // FIX 4: always-visible status badge — green if approved, amber if reference only
   const approvedBadge=savedImg
     ?`<span class="img-status-badge approved">✓ Aprobada</span>`
     :`<span class="img-status-badge reference" id="abadge-${i}">⚠ Referencia</span>`;
@@ -741,7 +728,7 @@ function cardHTML(r,i,terms){
           Open Google Images, find the correct image, right-click → "Copy image address", then paste it in the <strong>Paste link</strong> tab.
         </div>
         <div style="display:flex;flex-wrap:wrap;gap:6px">
-          <a href="https://www.google.com/search?q=${encodeURIComponent(pn+' '+nm+' -site:pinterest.com -site:etsy.com')}&tbm=isch&tbs=isz:m,ic:specific,isc:white" target="_blank"
+          <a href="https://www.google.com/search?q=${encodeURIComponent((nm||pn)+' -site:pinterest.com -site:etsy.com')}&tbm=isch&tbs=isz:m,ic:specific,isc:white" target="_blank"
              style="display:inline-flex;align-items:center;gap:5px;padding:7px 12px;background:#185FA5;color:#fff;border-radius:var(--rad-md);font-size:12px;font-weight:500;text-decoration:none">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
             Google Images
@@ -769,7 +756,7 @@ function buildImgQuery(r){
 }
 
 function buildSearchQuery(r){
-  // FIX 1: Name + Description keywords only — no part number
+  // FIX 1: use Item Name + key Description words — NOT the part number
   const nm=(r[cNAME]||'').trim();
   const ds=(r[cDESC]||'').trim().split(/\s+/).filter(w=>w.length>2).slice(0,4).join(' ');
   const cleanName=nm.replace(/[-_,]\s*[A-Z0-9]{4,}$/,'').trim();
@@ -963,23 +950,29 @@ function checkSaveReady(i){
 }
 
 // ── DRIVE & SHEET ──
-// FIX 3: manual multipart upload — more reliable than FormData across browsers
+// FIX 3: reliable multipart upload — bypasses FormData issues
 async function uploadToDrive(fileOrBlob, filename){
   const safeName=(filename||'image_'+Date.now()+'.jpg').replace(/[\/\\:*?"<>|]/g,'_').slice(0,100);
   let mimeType='image/jpeg';
-  if(fileOrBlob&&fileOrBlob.type&&fileOrBlob.type.startsWith('image/'))mimeType=fileOrBlob.type;
+  if(fileOrBlob&&fileOrBlob.type&&fileOrBlob.type.startsWith('image/')) mimeType=fileOrBlob.type;
 
+  // Convert to ArrayBuffer
   const arrayBuffer=await fileOrBlob.arrayBuffer();
-  const boundary='---SamaraUpload'+Date.now();
+
+  const boundary='---SamaraUploadBoundary'+Date.now();
+  const metaJson=JSON.stringify({name:safeName,parents:[FOLDER_ID]});
+
+  // Build multipart body manually (most reliable across browsers)
   const enc=new TextEncoder();
   const metaPart=enc.encode(
     '--'+boundary+'\r\n'+
     'Content-Type: application/json; charset=UTF-8\r\n\r\n'+
-    JSON.stringify({name:safeName,parents:[FOLDER_ID]})+'\r\n'+
+    metaJson+'\r\n'+
     '--'+boundary+'\r\n'+
     'Content-Type: '+mimeType+'\r\n\r\n'
   );
   const closePart=enc.encode('\r\n--'+boundary+'--');
+
   const body=new Uint8Array(metaPart.length+arrayBuffer.byteLength+closePart.length);
   body.set(metaPart,0);
   body.set(new Uint8Array(arrayBuffer),metaPart.length);
@@ -991,19 +984,23 @@ async function uploadToDrive(fileOrBlob, filename){
      headers:{Authorization:'Bearer '+token,'Content-Type':'multipart/related; boundary='+boundary},
      body:body}
   );
-  if(!resp.ok){
-    const e=await resp.json().catch(()=>({}));
-    throw new Error('Drive upload failed ('+resp.status+'): '+(e.error?.message||'unknown'));
-  }
-  const up=await resp.json();
-  if(!up.id)throw new Error('Drive returned no file ID');
 
-  // Make publicly readable
-  await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
+  if(!resp.ok){
+    const errBody=await resp.json().catch(()=>({}));
+    throw new Error('Drive upload failed ('+resp.status+'): '+(errBody.error?.message||'unknown error'));
+  }
+
+  const up=await resp.json();
+  if(!up.id) throw new Error('Drive returned no file ID');
+
+  // Make the file publicly readable
+  const permResp=await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
     method:'POST',
     headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
     body:JSON.stringify({role:'reader',type:'anyone'})
   });
+  if(!permResp.ok) console.warn('Could not make file public — it may not display for other users');
+
   return `https://drive.google.com/uc?id=${up.id}`;
 }
 
@@ -1016,15 +1013,10 @@ async function writeToSheet(i,link){
   });
   const d=await res.json();
   if(d.error)throw new Error('Sheet: '+d.error.message);
-  // Update data first — any future re-render reads from here
   allRows[i][IMG_COL_IDX]=link;
-  if(!imgState[i])imgState[i]={urls:[],current:0,rowData:allRows[i]};
-  if(!imgState[i].urls.includes(link))imgState[i].urls.unshift(link);
-  imgState[i].current=0;
-  // Then update DOM
   const mainImg=document.getElementById('img-'+i);
   if(mainImg){mainImg.src=link;mainImg.style.display='block';}
-  updateCounter(i);
+  if(imgState[i]){if(!imgState[i].urls.includes(link))imgState[i].urls.unshift(link);imgState[i].current=0;updateCounter(i);}
   const wrap=document.getElementById('imgwrap-'+i);
   if(wrap){const ph=wrap.querySelector('.img-ph');if(ph)ph.remove();}
   const badge=document.getElementById('abadge-'+i);
@@ -1086,8 +1078,10 @@ async function saveImage(i){
 }
 
 // ── ADMIN MANAGEMENT ──
-// FIX 2: store in Sheet cell Z1 so admins sync across all devices/browsers
-const ADMIN_RANGE='Z1';
+function adminRange(){
+  // Use detected tab name for reliable cross-device sync
+  return sheetTabName?`'${sheetTabName}'!${ADMIN_CELL}`:ADMIN_CELL;
+}
 
 function loadAdminsLocal(){
   const s=localStorage.getItem('parts_admins');
@@ -1096,34 +1090,46 @@ function loadAdminsLocal(){
 
 async function loadAdminsFromSheet(){
   try{
+    const rng=adminRange();
     const res=await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${ADMIN_RANGE}`,
+      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(rng)}`,
       {headers:{Authorization:'Bearer '+token}}
     );
     const d=await res.json();
+    if(d.error){console.warn('Admin read error:',d.error.message);loadAdminsLocal();return;}
     if(d.values&&d.values[0]&&d.values[0][0]){
-      const parsed=JSON.parse(d.values[0][0]);
+      const raw=d.values[0][0];
+      const parsed=JSON.parse(raw);
       if(Array.isArray(parsed)&&parsed.length){
         admins=parsed;
         localStorage.setItem('parts_admins',JSON.stringify(admins));
         return;
       }
     }
-  }catch(e){console.warn('Admin load fallback:',e);}
+  }catch(e){console.warn('Could not load admins from sheet:',e);}
   loadAdminsLocal();
 }
 
 async function saveAdmins(){
   localStorage.setItem('parts_admins',JSON.stringify(admins));
   try{
-    await fetch(
-      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${ADMIN_RANGE}?valueInputOption=RAW`,
+    const rng=adminRange();
+    const res=await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(rng)}?valueInputOption=RAW`,
       {method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-       body:JSON.stringify({range:ADMIN_RANGE,majorDimension:'ROWS',values:[[JSON.stringify(admins)]]})}
+       body:JSON.stringify({range:rng,majorDimension:'ROWS',values:[[JSON.stringify(admins)]]})}
     );
-  }catch(e){console.warn('Admin save fallback:',e);}
+    const d=await res.json();
+    if(d.error) throw new Error(d.error.message);
+    // Verify write succeeded
+    if(!d.updatedCells||d.updatedCells<1) throw new Error('Sheet did not confirm write');
+  }catch(e){
+    console.error('Admin save failed:',e);
+    toast('⚠ Admin saved locally only — Sheet sync failed: '+e.message);
+  }
 }
 
+// Recompute isAdmin and refresh UI visibility after any admin list change
 function refreshAdminUI(){
   isAdmin=admins.map(a=>a.toLowerCase()).includes(userEmail);
   const badge=document.getElementById('admin-badge');
@@ -1131,8 +1137,8 @@ function refreshAdminUI(){
   if(isAdmin){
     if(badge)badge.style.display='inline-block';
     if(bar)bar.style.display='flex';
+    // Show add-img buttons on already-rendered cards
     document.querySelectorAll('.add-img-btn').forEach(b=>b.classList.add('admin-visible'));
-    setTimeout(setSpacerHeight, 30);
   }
 }
 
@@ -1158,7 +1164,7 @@ async function addAdmin(){
   await saveAdmins();
   refreshAdminUI();
   inp.value='';renderAdminList();
-  toast('Admin added: '+email+' ✓');
+  toast('Admin added: '+email+' — saved to Sheet ✓');
 }
 async function removeAdmin(i){
   if(admins[i].toLowerCase()===userEmail){toast("You can't remove yourself");return;}
@@ -1167,6 +1173,14 @@ async function removeAdmin(i){
   refreshAdminUI();
   renderAdminList();
   toast('Admin removed');
+}
+
+async function reloadAdminList(){
+  toast('Reloading admin list from Sheet...');
+  await loadAdminsFromSheet();
+  refreshAdminUI();
+  renderAdminList();
+  toast('Admin list reloaded ✓ — '+admins.length+' admin(s)');
 }
 
 // ── ARENA UPDATE ──
@@ -1319,71 +1333,71 @@ async function confirmUpdate(){
   document.getElementById('update-progress').style.display='block';
 
   const total=updated.length+newItems.length;
-  let done=0;
-
-  function setProgress(n){
-    const pct=total?Math.round(n/total*100):100;
+  function setProgress(pct,label){
     document.getElementById('update-progress-bar').style.width=pct+'%';
-    document.getElementById('update-progress-text').textContent=`Writing to Sheet... ${n}/${total}`;
+    document.getElementById('update-progress-text').textContent=label;
   }
 
+  // FIX 3: strip leading apostrophe from all values (Arena XLS sometimes adds one)
+  function cleanVal(v){return String(v||'').trim().replace(/^'/,'');}
+
   try{
-    // 1. Update existing rows in batches
+    // FIX 2: single batchUpdate for ALL existing-row updates (one API call = much faster)
     if(updated.length){
-      const batchSize=50;
-      for(let b=0;b<updated.length;b+=batchSize){
-        const batch=updated.slice(b,b+batchSize);
-        const data=[];
-        const ranges=[];
-        batch.forEach(({ar,idx})=>{
-          const sheetRow=HEADER_ROW+1+idx;
-          // Only update cols A-L (0-11), preserve M
-          const rowData=ar.slice(0,12).map(v=>String(v||'').trim());
-          data.push({range:`A${sheetRow}:L${sheetRow}`,values:[rowData]});
-        });
-        // Write batch
-        for(const item of data){
-          await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${item.range}?valueInputOption=RAW`,{
-            method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-            body:JSON.stringify({range:item.range,majorDimension:'ROWS',values:item.values})
-          });
-          // Update local allRows
-          const {ar,idx}=updated.find(u=>u.idx===updated[data.indexOf(item)]?.idx)||{};
-        }
-        done+=batch.length;
-        setProgress(done);
-        // Update local data
-        batch.forEach(({ar,idx})=>{
-          for(let c=0;c<12;c++) allRows[idx][c]=String(ar[c]||'').trim();
-        });
-      }
+      setProgress(10,`Preparing ${updated.length} updates...`);
+      const batchData=updated.map(({ar,idx})=>{
+        const sheetRow=HEADER_ROW+1+idx;
+        return {
+          range:`A${sheetRow}:L${sheetRow}`,
+          values:[ar.slice(0,12).map(cleanVal)]
+        };
+      });
+      setProgress(20,`Writing ${updated.length} updated rows in one request...`);
+      const bRes=await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values:batchUpdate`,
+        {method:'POST',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+         body:JSON.stringify({valueInputOption:'RAW',data:batchData})}
+      );
+      const bData=await bRes.json();
+      if(bData.error) throw new Error('batchUpdate: '+bData.error.message);
+      // Update local allRows in memory
+      updated.forEach(({ar,idx})=>{
+        for(let c=0;c<12;c++) allRows[idx][c]=cleanVal(ar[c]);
+      });
+      setProgress(70,`${updated.length} rows updated ✓`);
     }
 
-    // 2. Append new items at the bottom
+    // Append new items at the bottom (one PUT call)
     if(newItems.length){
+      setProgress(75,`Adding ${newItems.length} new items...`);
       const startRow=HEADER_ROW+1+allRows.length;
       const values=newItems.map(ar=>{
-        const row=ar.slice(0,12).map(v=>String(v||'').trim());
-        while(row.length<13)row.push(''); // pad to col M
+        const row=ar.slice(0,12).map(cleanVal);
+        while(row.length<13)row.push(''); // pad to col M (image col stays empty)
         return row;
       });
       const range=`A${startRow}:M${startRow+newItems.length-1}`;
-      await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?valueInputOption=RAW`,{
-        method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-        body:JSON.stringify({range,majorDimension:'ROWS',values})
-      });
+      const aRes=await fetch(
+        `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${range}?valueInputOption=RAW`,
+        {method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+         body:JSON.stringify({range,majorDimension:'ROWS',values})}
+      );
+      const aData=await aRes.json();
+      if(aData.error) throw new Error('append: '+aData.error.message);
       // Update local allRows
       newItems.forEach(ar=>{
-        const row=ar.slice(0,12).map(v=>String(v||'').trim());
+        const row=ar.slice(0,12).map(cleanVal);
         while(row.length<13)row.push('');
         allRows.push(row);
       });
-      done+=newItems.length;
-      setProgress(done);
+      setProgress(95,`${newItems.length} new items added ✓`);
     }
 
-    setProgress(total);
+    // Save upload date
+    await saveLastUpdateDate();
+    setProgress(100,'Done!');
     buildLCFilters();
+    buildCatFilters();
     document.getElementById('sheet-st').textContent=allRows.length.toLocaleString()+' items loaded';
     toast(`✓ Update complete — ${updated.length} updated, ${newItems.length} new items added`);
     setTimeout(()=>{
@@ -1404,11 +1418,65 @@ function signOut(){
   google.accounts.id.disableAutoSelect();
   token='';allRows=[];hdrs=[];userEmail='';isAdmin=false;
   document.getElementById('lc-filters').innerHTML='';
+  document.getElementById('cat-filters').innerHTML='';
   document.getElementById('results').innerHTML='';
   document.getElementById('admin-panel').style.display='none';
   document.getElementById('admin-bar').style.display='none';
   document.getElementById('admin-badge').style.display='none';
   show('login-screen');
+}
+
+// ── LAST UPDATE DATE ──
+async function loadLastUpdateDate(){
+  try{
+    const rng=sheetTabName?`'${sheetTabName}'!${LUPDATE_CELL}`:LUPDATE_CELL;
+    const res=await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(rng)}`,
+      {headers:{Authorization:'Bearer '+token}}
+    );
+    const d=await res.json();
+    if(d.values&&d.values[0]&&d.values[0][0]){
+      document.getElementById('last-update-label').textContent='Last report: '+d.values[0][0];
+      document.getElementById('last-update-label').style.display='inline';
+    }
+  }catch(e){console.warn('Could not load last update date:',e);}
+}
+
+async function saveLastUpdateDate(){
+  try{
+    const dateStr=new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    const rng=sheetTabName?`'${sheetTabName}'!${LUPDATE_CELL}`:LUPDATE_CELL;
+    await fetch(
+      `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${encodeURIComponent(rng)}?valueInputOption=RAW`,
+      {method:'PUT',headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+       body:JSON.stringify({range:rng,majorDimension:'ROWS',values:[[dateStr]]})}
+    );
+    document.getElementById('last-update-label').textContent='Last report: '+dateStr;
+    document.getElementById('last-update-label').style.display='inline';
+  }catch(e){console.warn('Could not save last update date:',e);}
+}
+
+// ── CATEGORY FILTERS ──
+function buildCatFilters(){
+  allCats=[...new Set(allRows.map(r=>r[cCAT]||'').filter(Boolean))].sort();
+  const el=document.getElementById('cat-filters');
+  if(!el)return;
+  el.innerHTML='';
+  if(!allCats.length){document.getElementById('cat-section').style.display='none';return;}
+  document.getElementById('cat-section').style.display='block';
+  // "All" chip
+  const all=document.createElement('span');
+  all.className='chip'+(activeCat===''?' on-cat':'');
+  all.textContent='All Categories';
+  all.onclick=()=>{activeCat='';buildCatFilters();doSearch();};
+  el.appendChild(all);
+  allCats.forEach(cat=>{
+    const c=document.createElement('span');
+    c.className='chip'+(activeCat===cat?' on-cat':'');
+    c.textContent=cat;
+    c.onclick=()=>{activeCat=(activeCat===cat?'':cat);buildCatFilters();doSearch();};
+    el.appendChild(c);
+  });
 }
 
 // ── TOAST ──
