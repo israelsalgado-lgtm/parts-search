@@ -802,16 +802,35 @@ function getBingImageUrls(r, count=5){
 }
 
 function initImgState(r,i){
-  if(imgState[i])return;
   const saved=r[IMG_COL_IDX]||'';
-  imgState[i]={urls:saved?[saved]:[],current:0,rowData:r};
+  const wrap=document.getElementById('imgwrap-'+i);
   const el=document.getElementById('img-'+i);
+
+  // Case A: imgState already exists (user did a previous search) — DOM was rebuilt,
+  // so we must re-apply the existing image to the fresh DOM element without
+  // re-fetching or re-observing.
+  if(imgState[i]){
+    const st=imgState[i];
+    if(el&&st.urls.length){
+      el.src=st.urls[st.current];
+      el.style.display='block';
+      el.onerror=()=>imgError(i);
+      updateCounter(i);
+    } else if(wrap){
+      showPlaceholder(i,r);
+    }
+    return;
+  }
+
+  // Case B: first time seeing this row — build state fresh
+  imgState[i]={urls:saved?[saved]:[],current:0,rowData:r};
+
   if(saved){
     if(el){el.src=saved;el.style.display='block';updateCounter(i);}
     return;
   }
-  // No saved image — show Bing thumbnails via IntersectionObserver
-  const wrap=document.getElementById('imgwrap-'+i);
+
+  // No saved image — lazy-load Bing thumbnails via IntersectionObserver
   if(!wrap)return;
   showPlaceholder(i,r);
   const obs=new IntersectionObserver((entries,o)=>{
@@ -821,15 +840,13 @@ function initImgState(r,i){
     imgState[i].urls=urls;
     imgState[i].current=0;
     const imgEl=document.getElementById('img-'+i);
-    const ph=wrap.querySelector('.img-spin-ph');
-    // Try loading first Bing thumbnail
     if(imgEl){
       imgEl.src=urls[0];
       imgEl.style.display='block';
+      imgEl.onerror=()=>imgError(i);
       imgEl.onload=()=>{
-        const ph2=wrap.querySelector('.img-ph');if(ph2)ph2.remove();
+        const ph=wrap.querySelector('.img-ph');if(ph)ph.remove();
         updateCounter(i);
-        // Show approve button for admins
         if(isAdmin){const qb=document.getElementById('qabtn-'+i);if(qb)qb.style.display='';}
       };
     }
