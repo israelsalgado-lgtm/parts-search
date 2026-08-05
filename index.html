@@ -1024,7 +1024,7 @@ async function uploadToDrive(fileOrBlob, filename){
   body.set(closePart,metaPart.length+arrayBuffer.byteLength);
 
   const resp=await fetch(
-    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,name',
+    'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true&fields=id,name',
     {method:'POST',
      headers:{Authorization:'Bearer '+token,'Content-Type':'multipart/related; boundary='+boundary},
      body:body}
@@ -1039,7 +1039,7 @@ async function uploadToDrive(fileOrBlob, filename){
   if(!up.id) throw new Error('Drive returned no file ID');
 
   // Make the file publicly readable
-  const permResp=await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions`,{
+  const permResp=await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions?supportsAllDrives=true`,{
     method:'POST',
     headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
     body:JSON.stringify({role:'reader',type:'anyone'})
