@@ -1038,15 +1038,26 @@ async function uploadToDrive(fileOrBlob, filename){
   const up=await resp.json();
   if(!up.id) throw new Error('Drive returned no file ID');
 
-  // Make the file publicly readable
-  const permResp=await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions?supportsAllDrives=true`,{
-    method:'POST',
-    headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
-    body:JSON.stringify({role:'reader',type:'anyone'})
-  });
-  if(!permResp.ok) console.warn('Could not make file public — it may not display for other users');
+  // Make the file viewable. Some Workspace orgs block "anyone on the internet"
+  // link-sharing for Shared Drive content (403), so try that first, then
+  // fall back to domain-only sharing (samara.com), which our users can already
+  // see since they're signed into their @samara.com Google session.
+  async function tryPerm(body){
+    const r=await fetch(`https://www.googleapis.com/drive/v3/files/${up.id}/permissions?supportsAllDrives=true`,{
+      method:'POST',
+      headers:{Authorization:'Bearer '+token,'Content-Type':'application/json'},
+      body:JSON.stringify(body)
+    });
+    if(!r.ok){
+      const err=await r.json().catch(()=>({}));
+      console.warn('Permission attempt failed', body, r.status, err.error?.message||err);
+    }
+    return r.ok;
+  }
+  const madePublic=await tryPerm({role:'reader',type:'anyone'});
+  if(!madePublic) await tryPerm({role:'reader',type:'domain',domain:'samara.com'});
 
-  return `https://drive.google.com/uc?id=${up.id}`;
+  return `https://drive.google.com/thumbnail?id=${up.id}&sz=w1000`;
 }
 
 async function writeToSheet(i,link){
