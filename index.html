@@ -439,7 +439,7 @@ function initAuth(){
   setLoading('Checking session...');
   google.accounts.oauth2.initTokenClient({
     client_id:CLIENT_ID,
-    scope:'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+    scope:'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
     prompt:'',
     callback:async r=>{
       if(r.error||!r.access_token){show('login-screen');return;}
@@ -453,7 +453,7 @@ function initAuth(){
 function requestToken(prompt){
   google.accounts.oauth2.initTokenClient({
     client_id:CLIENT_ID,
-    scope:'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
+    scope:'https://www.googleapis.com/auth/spreadsheets https://www.googleapis.com/auth/drive https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email',
     prompt,
     callback:async r=>{
       if(r.error){show('login-screen');document.getElementById('login-err').textContent='Error: '+r.error;return;}
